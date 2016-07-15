@@ -22,6 +22,13 @@ macro select(syms...)
     end
 end
 
+_select(input::QueryNode, cols::Vector{Symbol}) = SelectNode(input, cols)
 _select(input::QueryNode, cols::Tuple{Symbol}) = SelectNode(input, collect(cols))
 _select(input::DataFrame, cols) = SelectNode(DataNode(input), cols)
 _select{N}(cols::Tuple{Vararg{Symbol, N}}) = x -> _select(x, collect(cols))
+
+Base.select(cols::Vector{QueryArg{Symbol}}) = x -> select(x, cols)
+Base.select(df::DataFrame, cols::Vector{QueryArg{Symbol}}) =
+    SelectNode(DataNode(df), cols)
+Base.select(input::QueryNode, cols::Vector{QueryArg{Symbol}}) =
+    SelectNode(input, cols)
