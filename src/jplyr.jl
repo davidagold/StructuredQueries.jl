@@ -1,8 +1,6 @@
 module jplyr
 
-# using Flow
-
-export @query, @filter, @select, filter
+export @query, @filter, @select
 export DataFrame # test purposes
 
 include("querynode.jl")

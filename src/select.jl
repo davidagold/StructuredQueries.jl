@@ -1,31 +1,28 @@
 macro select(input::Expr, cols::Symbol...)
+    _cols = [ QueryArg(col) for col in cols ]
     return quote
         x = $(esc(input))
-        _select(x, $cols)
+        select(x, $_cols)
     end
 end
 
 macro select(syms...)
     if isdefined(syms[1])
         if length(syms) > 1
-            _cols = syms[2:end]
+            _cols = QueryArg{Symbol}[ QueryArg(sym) for sym in syms[2:end] ]
         else
-            _cols = []
+            _cols = QueryArg{Symbol}[]
         end
         return quote
-            _select($(esc(syms[1])), $_cols)
+            select($(esc(syms[1])), $_cols)
         end
     else
+        _syms = [ QueryArg(sym) for sym in syms ]
         return quote
-            _select($syms)
+            select($_syms)
         end
     end
 end
-
-_select(input::QueryNode, cols::Vector{Symbol}) = SelectNode(input, cols)
-_select(input::QueryNode, cols::Tuple{Symbol}) = SelectNode(input, collect(cols))
-_select(input::DataFrame, cols) = SelectNode(DataNode(input), cols)
-_select{N}(cols::Tuple{Vararg{Symbol, N}}) = x -> _select(x, collect(cols))
 
 Base.select(cols::Vector{QueryArg{Symbol}}) = x -> select(x, cols)
 Base.select(df::DataFrame, cols::Vector{QueryArg{Symbol}}) =

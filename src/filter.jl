@@ -1,21 +1,17 @@
 macro filter(input::Symbol, ex::Expr...)
-    local lex = QuoteNode(ex)
-    quote
-        _filter($(esc(input)), $lex)
+    # local lex = QuoteNode(ex)
+    conds = [ QueryArg(cond) for cond in ex ]
+    return quote
+        filter($(esc(input)), $conds)
     end
 end
 
 macro filter(ex::Expr...)
-    local lex = QuoteNode(ex)
-    quote
-        _filter($lex)
+    conds = [ QueryArg(cond) for cond in ex ]
+    return quote
+        filter($conds)
     end
 end
-
-_filter(input::DataFrame, ex) = FilterNode(DataNode(input), collect(ex))
-_filter(input::QueryNode, ex) = FilterNode(input, collect(ex))
-_filter{N}(exs::Tuple{Vararg{Expr, N}}) = x -> _filter(x, exs)
-_filter(exs) = x -> _filter(x, exs)
 
 Base.filter(conds::Vector{QueryArg{Expr}}) = x -> filter(x, conds)
 function Base.filter(input::DataFrame, conds::Vector{QueryArg{Expr}})

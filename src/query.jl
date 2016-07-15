@@ -6,34 +6,23 @@ end
 Base.convert{T}(::Type{T}, arg::QueryArg{T}) = arg.arg
 
 macro query(qry)
-    piped = pipedsource(qry)
-    return quote
-        $(esc(resolve(qry, $piped)))
-    end
+    _qry = esc(resolve(qry))
+    return :( run($_qry) )
 end
 
-function pipedsource(qry)
-    if qry.head == :call
-        qry.args[1] == :|> ? true : false
-    else
-        false
-    end
-end
+run(x) = x
 
-#= Want, for instance, filter(PetalLength > 1.5, Species == "setosa")
-to go to
+#=
+Want, for instance, filter(PetalLength > 1.5, Species == "setosa") to go to
     filter(:(PetalLength > 1.5), :(Species == "setosa"))
 =#
 
-function resolve_filter(ex)
+function resolve_filter(ex, receives_pipe)
     args = exfargs(ex)
     arg1 = args[1]
-    # heuristic for whether or not a data source is passed, or just filter conditions
-    # TO-DO: come up with better heuristic --- this will FAIL inside a local scope
-    if isa(arg1, Symbol) && isdefined(arg1)
+    if !receives_pipe
         with_first(args, arg1, :filter, Expr)
-    # otherwise, assume all arguments are filter conditions
-    else
+    else # if receives pipe, assumed all args are conditions
         conds = QueryArg{Expr}[ QueryArg(cond) for cond in args ]
         return quote
             filter($conds)
@@ -41,12 +30,12 @@ function resolve_filter(ex)
     end
 end
 
-function resolve_select(ex)
+function resolve_select(ex, receives_pipe)
     args = exfargs(ex)
     arg1 = args[1]
-    if isa(arg1, Symbol) && isdefined(arg1)
+    if !receives_pipe
         with_first(args, arg1, :select, Symbol)
-    else
+    else # if receives pipe, assume all args are columns
         cols = QueryArg{Symbol}[ QueryArg(col) for col in args ]
         return quote
             select($cols)
@@ -65,16 +54,21 @@ function with_first(args, input, method, T)
     return Expr(:call, method, input, args)
 end
 
-resolve(x) = x
-function resolve(ex::Expr, piped)
+resolve(x, receives_pipe) = x
+resolve(ex::Expr) = resolve(ex, false)
+
+function resolve(ex::Expr, receives_pipe)
+    # println("ex = ", ex)
+    # println("receives_pipe = ", receives_pipe)
     if ex.head == :call
         f = exf(ex)
+        args = exfargs(ex)
         if f == :filter
-            return resolve_filter(ex, piped)
+            return resolve_filter(ex, receives_pipe)
         elseif f == :select
-            return resolve_select(ex, piped)
+            return resolve_select(ex, receives_pipe)
         elseif exf(ex) == :|>
-            return Expr(:call, :|>, [ resolve(arg) for arg in exfargs(ex) ]...)
+            return Expr(:call, :|>, resolve(args[1], false), resolve(args[2], true))
         end
     else
         return ex
