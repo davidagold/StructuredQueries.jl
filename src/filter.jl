@@ -2,14 +2,14 @@ macro filter(input::Symbol, ex::Expr...)
     # local lex = QuoteNode(ex)
     conds = [ QueryArg(cond) for cond in ex ]
     return quote
-        filter($(esc(input)), $conds)
+        run(filter($(esc(input)), $conds))
     end
 end
 
 macro filter(ex::Expr...)
     conds = [ QueryArg(cond) for cond in ex ]
     return quote
-        filter($conds)
+        run(filter($conds))
     end
 end
 

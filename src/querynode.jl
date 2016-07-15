@@ -10,7 +10,7 @@ QueryNode(df::DataFrame) = DataNode(df)
 
 immutable FilterNode <: QueryNode
     input::QueryNode
-    ex::Vector{Expr}
+    conds::Vector{Expr}
 end
 
 FilterNode(input, ex::Expr...) = FilterNode(input, collect(ex))

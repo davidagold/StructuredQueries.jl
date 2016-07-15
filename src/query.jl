@@ -50,16 +50,14 @@ function with_first(args, input, method, T)
     else
         args = QueryArg{T}[]
     end
-    # let dispatch resolve matter of first argument
-    return Expr(:call, method, input, args)
+    _input = resolve(input)
+    return Expr(:call, method, _input, args)
 end
 
+resolve(x) = resolve(x, false)
 resolve(x, receives_pipe) = x
-resolve(ex::Expr) = resolve(ex, false)
 
 function resolve(ex::Expr, receives_pipe)
-    # println("ex = ", ex)
-    # println("receives_pipe = ", receives_pipe)
     if ex.head == :call
         f = exf(ex)
         args = exfargs(ex)
