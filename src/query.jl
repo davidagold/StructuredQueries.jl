@@ -10,19 +10,17 @@ macro query(qry)
     return :( run($_qry) )
 end
 
-run(x) = x
-
 #=
 Want, for instance, filter(PetalLength > 1.5, Species == "setosa") to go to
     filter(:(PetalLength > 1.5), :(Species == "setosa"))
 =#
 
-function resolve_filter(ex, receives_pipe)
+function resolve_filter(ex, piped_to)
     args = exfargs(ex)
     arg1 = args[1]
-    if !receives_pipe
+    if !piped_to
         with_first(args, arg1, :filter, Expr)
-    else # if receives pipe, assumed all args are conditions
+    else # if piped to, assumed all args are conditions
         conds = QueryArg{Expr}[ QueryArg(cond) for cond in args ]
         return quote
             filter($conds)
@@ -30,12 +28,12 @@ function resolve_filter(ex, receives_pipe)
     end
 end
 
-function resolve_select(ex, receives_pipe)
+function resolve_select(ex, piped_to)
     args = exfargs(ex)
     arg1 = args[1]
-    if !receives_pipe
+    if !piped_to
         with_first(args, arg1, :select, Symbol)
-    else # if receives pipe, assume all args are columns
+    else # if piped to, assume all args are columns
         cols = QueryArg{Symbol}[ QueryArg(col) for col in args ]
         return quote
             select($cols)
@@ -55,16 +53,16 @@ function with_first(args, input, method, T)
 end
 
 resolve(x) = resolve(x, false)
-resolve(x, receives_pipe) = x
+resolve(x, piped_to) = x
 
-function resolve(ex::Expr, receives_pipe)
+function resolve(ex::Expr, piped_to)
     if ex.head == :call
         f = exf(ex)
         args = exfargs(ex)
         if f == :filter
-            return resolve_filter(ex, receives_pipe)
+            return resolve_filter(ex, piped_to)
         elseif f == :select
-            return resolve_select(ex, receives_pipe)
+            return resolve_select(ex, piped_to)
         elseif exf(ex) == :|>
             return Expr(:call, :|>, resolve(args[1], false), resolve(args[2], true))
         end
