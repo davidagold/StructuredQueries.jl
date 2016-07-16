@@ -20,6 +20,3 @@ immutable SelectNode <: QueryNode
     input::QueryNode
     cols::Vector{Symbol}
 end
-
-exf(ex) = ex.args[1]
-exfargs(ex) = ex.args[2:end]

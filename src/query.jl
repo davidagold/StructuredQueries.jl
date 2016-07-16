@@ -15,6 +15,9 @@ Want, for instance, filter(PetalLength > 1.5, Species == "setosa") to go to
     filter(:(PetalLength > 1.5), :(Species == "setosa"))
 =#
 
+exf(ex) = ex.args[1]
+exfargs(ex) = ex.args[2:end]
+
 function resolve_filter(ex, piped_to)
     args = exfargs(ex)
     arg1 = args[1]
@@ -48,13 +51,11 @@ function with_first(args, input, method, T)
     else
         args = QueryArg{T}[]
     end
-    _input = resolve(input)
-    return Expr(:call, method, _input, args)
+    return Expr(:call, method, resolve(input), args)
 end
 
 resolve(x) = resolve(x, false)
 resolve(x, piped_to) = x
-
 function resolve(ex::Expr, piped_to)
     if ex.head == :call
         f = exf(ex)
@@ -63,7 +64,7 @@ function resolve(ex::Expr, piped_to)
             return resolve_filter(ex, piped_to)
         elseif f == :select
             return resolve_select(ex, piped_to)
-        elseif exf(ex) == :|>
+        elseif f == :|>
             return Expr(:call, :|>, resolve(args[1], false), resolve(args[2], true))
         end
     else

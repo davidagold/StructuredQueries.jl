@@ -14,9 +14,7 @@ macro filter(ex::Expr...)
 end
 
 Base.filter(conds::Vector{QueryArg{Expr}}) = x -> filter(x, conds)
-function Base.filter(input::DataFrame, conds::Vector{QueryArg{Expr}})
-    return FilterNode(DataNode(input), collect(conds))
-end
-function Base.filter(input::QueryNode, conds::Vector{QueryArg{Expr}})
-    return FilterNode(input, conds)
-end
+Base.filter(input::DataFrame, conds::Vector{QueryArg{Expr}}) =
+    FilterNode(DataNode(input), collect(conds))
+Base.filter(input::QueryNode, conds::Vector{QueryArg{Expr}}) =
+    FilterNode(input, conds)
