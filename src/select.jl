@@ -1,31 +1,20 @@
-macro select(input::Expr, cols::Symbol...)
-    _cols = [ QueryArg(col) for col in cols ]
-    return quote
-        x = $(esc(input))
-        select(x, $_cols)
-    end
-end
-
+#=
+TO DO: figure out how to differentiate b/w piped to and non-piped to
+@select calls. Currently, only the former are handled. The issue is how to
+distinguish a symbol that represents a data source argument from a symbol
+that represents a field name argument
+=#
 macro select(syms...)
-    if isdefined(syms[1])
-        if length(syms) > 1
-            _cols = QueryArg{Symbol}[ QueryArg(sym) for sym in syms[2:end] ]
-        else
-            _cols = QueryArg{Symbol}[]
-        end
-        return quote
-            select($(esc(syms[1])), $_cols)
-        end
-    else
-        _syms = [ QueryArg(sym) for sym in syms ]
-        return quote
-            select($_syms)
-        end
+    g = _select(gensym(), collect(syms))
+    return quote
+        run($g)
     end
 end
 
-Base.select(cols::Vector{QueryArg{Symbol}}) = x -> select(x, cols)
-Base.select(df::DataFrame, cols::Vector{QueryArg{Symbol}}) =
-    SelectNode(DataNode(df), cols)
-Base.select(input::QueryNode, cols::Vector{QueryArg{Symbol}}) =
-    SelectNode(input, cols)
+_select(fields) = x -> _select(x, fields)
+_select(input, fields) = SelectNode(input, fields)
+
+run(g::SelectNode) = x -> run(x, g)
+if isdefined(Main, :DataFrame)
+    run(df::Main.DataFrames.DataFrame, g::SelectNode) = df[g.fields]
+end
