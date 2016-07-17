@@ -1,22 +1,19 @@
-type DataFrame end
-
 abstract QueryNode
 
-immutable DataNode{T} <: QueryNode
-    data::T
+immutable DataNode <: QueryNode
+    input::Symbol
 end
-
-QueryNode(df::DataFrame) = DataNode(df)
 
 immutable FilterNode <: QueryNode
     input::QueryNode
     conds::Vector{Expr}
 end
 
-FilterNode(input, ex::Expr...) = FilterNode(input, collect(ex))
-FilterNode(input::DataFrame, ex::Expr...) = FilterNode(DataNode(input), collect(ex))
+FilterNode(input::Symbol, conds) = FilterNode(DataNode(input), conds)
 
 immutable SelectNode <: QueryNode
     input::QueryNode
-    cols::Vector{Symbol}
+    fields::Vector{Symbol}
 end
+
+SelectNode(input::Symbol, cols) = SelectNode(DataNode(input), cols)
