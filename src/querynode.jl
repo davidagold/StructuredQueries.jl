@@ -17,3 +17,8 @@ immutable SelectNode <: QueryNode
 end
 
 SelectNode(input::Symbol, cols) = SelectNode(DataNode(input), cols)
+
+immutable GroupbyNode <: QueryNode
+    input::QueryNode
+    fields::Vector{Symbol}
+end

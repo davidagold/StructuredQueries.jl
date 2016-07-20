@@ -2,7 +2,6 @@ module jplyr
 # using RDatasets
 # using DataFrames
 
-
 export @query,
     @filter,
     @select,
@@ -13,6 +12,7 @@ include("querynode.jl")
 include("query.jl")
 include("select.jl")
 include("filter.jl")
+include("groupby.jl")
 include("resolve.jl")
 
 end # module

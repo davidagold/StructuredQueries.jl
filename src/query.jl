@@ -22,6 +22,8 @@ function graph(ex::Expr, piped_to)
             return graph(ex, piped_to, _filter)
         elseif f == :select
             return graph(ex, piped_to, _select)
+        elseif f == :groupby
+            return graph(ex, piped_to, _groupby)
         elseif f == :|>
             return (graph(args[1], false) |> graph(args[2], true))
         end
