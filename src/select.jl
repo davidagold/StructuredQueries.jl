@@ -15,6 +15,4 @@ _select(fields) = x -> _select(x, fields)
 _select(input, fields) = SelectNode(input, fields)
 
 run(g::SelectNode) = x -> run(x, g)
-if isdefined(Main, :DataFrame)
-    run(df::Main.DataFrames.DataFrame, g::SelectNode) = df[g.fields]
-end
+run(df::DataFrames.DataFrame, g::SelectNode) = df[g.fields]

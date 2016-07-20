@@ -1,6 +1,5 @@
 module jplyr
-# using RDatasets
-# using DataFrames
+using DataFrames
 
 export @query,
     @filter,
