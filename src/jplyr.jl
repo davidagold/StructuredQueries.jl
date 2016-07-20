@@ -4,6 +4,7 @@ using DataFrames
 export @query,
     @filter,
     @select,
+    @groupby,
     # following are exported only for test purposes
     resolve
 
