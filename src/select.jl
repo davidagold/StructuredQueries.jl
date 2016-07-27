@@ -15,21 +15,17 @@ macro select(args...)
     return quote
         try # assume first that first arg is data input
             g = SelectNode($(esc(input)), collect($cols))
-            run(g.input, g)
+            _collect(g)
         catch err
             #= if error because first arg isn't valid name, assume it is a
-            column specification and return curried run. Otherwise, throw
+            column specification and return curried collect. Otherwise, throw
             the error =#
             if err == UndefVarError($_input)
                 g = SelectNode(DataNode(), collect($args))
-                run(CurryNode(), g)
+                _collect(CurryNode(), g)
             else
                 throw(err)
             end
         end
     end
 end
-
-run(::CurryNode, g::SelectNode) = x -> run(x, g)
-run(input::DataNode, g::SelectNode) = run(input.input, g)
-run(df::DataFrames.DataFrame, g::SelectNode) = df[g.fields]
