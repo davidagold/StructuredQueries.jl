@@ -5,49 +5,35 @@ conditions)
 https://gist.github.com/simonbyrne/30522225543b86f3f20e084220c2f485
 =#
 
-function resolve(g::FilterNode)
-    fields, _conds = resolve(g.conds)
-    cond = aggr(_conds)
+function resolve_filter(_conds::Vector{Expr})
+    fields, conds = resolve_conds(_conds)
+    cond = aggr(conds)
     fdef = Expr(:->, Expr(:tuple, fields...), cond)
     return gensym("f"), fdef, fields
 end
 
-function resolve(conds)
-    cols = Set{Symbol}()
-    _conds = [ resolve!(cond, cols) for cond in conds ]
-    return cols, _conds
+function resolve_conds(_conds)
+    fields = Set{Symbol}()
+    conds = [ resolve!(_cond, fields) for _cond in _conds ]
+    return fields, conds
 end
 
-resolve!(x, cols) = x
-function resolve!(sym::Symbol, cols)
-    push!(cols, sym)
+resolve!(x, fields) = x
+function resolve!(sym::Symbol, fields)
+    push!(fields, sym)
     return sym
 end
 
-function resolve!(ex::Expr, cols)
+function resolve!(ex::Expr, fields)
     if ex.head == :$
         return ex.args[1]
     elseif ex.head == :call
-        return Expr(:call, exf(ex), [ resolve!(arg, cols) for arg in exfargs(ex) ]...)
+        return Expr(:call, exf(ex), [ resolve!(arg, fields) for arg in exfargs(ex) ]...)
     elseif ex.head == :comparison
-        return Expr(:comparison, resolve!(ex.args[1], cols), ex.args[2], resolve!(ex.args[3], cols))
+        return Expr(:comparison, resolve!(ex.args[1], fields), ex.args[2], resolve!(ex.args[3], fields))
     else
-        return Expr([ resolve!(arg, cols) for arg in ex.args ]...)
+        return Expr([ resolve!(arg, fields) for arg in ex.args ]...)
     end
 end
 
-# aggregate filter conditions into a single expression
-function aggr(_conds)
-    len = length(_conds)
-    if len == 1
-        res = _conds[1]
-    else
-        res = :($(_conds[1]) & $(_conds[2]))
-        if len > 2
-            for i in 3:len
-                res = :($res & $(_conds[i]))
-            end
-        end
-    end
-    return res
-end
+aggr(conds) = foldl((x,y)->:($x & $y), conds)

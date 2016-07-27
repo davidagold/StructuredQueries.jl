@@ -1,51 +1,46 @@
 # TO DO: Figure out how to run complicated graphs
 macro query(qry)
-    g = graph(qry)
-    return :( $g )
+    src, g = gen_graph(qry)
+    return quote
+        $(esc(src[1])) |> x -> set_src!($g, x)
+        $g
+    end
 end
-
-#=
-Want, for instance, filter(PetalLength > 1.5, Species == "setosa") to go to
-    _filter(:(PetalLength > 1.5), :(Species == "setosa"))
-=#
 
 exf(ex) = ex.args[1]
 exfargs(ex) = ex.args[2:end]
 
-graph(x) = graph(x, false)
-graph(x, piped_to) = DataNode(x)
-function graph(ex::Expr, piped_to)
+const manip_types = Dict{Symbol, DataType}(:filter => FilterNode,
+                                           :select => SelectNode,
+                                           :groupby => GroupbyNode)
+
+function gen_graph(x)
+    src = Vector{Symbol}()
+    return src, gen_graph!(x, false, src)
+end
+function gen_graph!(x::Symbol, piped_to, src)
+    isempty(src) && push!(src, x)
+    return DataNode()
+end
+function gen_graph!(ex::Expr, piped_to, src)
     if ex.head == :call
         f = exf(ex)
         args = exfargs(ex)
-        if f == :filter
-            return graph(ex, piped_to, _filter)
-        elseif f == :select
-            return graph(ex, piped_to, _select)
-        elseif f == :groupby
-            return graph(ex, piped_to, _groupby)
+        if haskey(manip_types, f)
+            gen_node!(ex, piped_to, manip_types[f], src)
         elseif f == :|>
-            return (graph(args[1], false) |> graph(args[2], true))
+            return (gen_graph!(args[1], false, src) |>
+                    gen_graph!(args[2], true, src))
         end
     end
 end
 
-function graph(ex, piped_to, method)
+function gen_node!(ex, piped_to, T, src)
     args = exfargs(ex)
-    arg1 = args[1]
+    input = args[1]
     if !piped_to
-        with_input(arg1, args, method)
+        T(gen_graph!(input, false, src), args[2:end])
     else # if piped to, assume all args are conditions
-        return method(args)
+        return x -> T(x, args)
     end
-end
-
-function with_input(input, args, method)
-    if length(args) > 1
-        # assume remaining arguments are conditions/columns/whatever
-        _args = args[2:end]
-    else
-        _args = []
-    end
-    return method(graph(input), _args)
 end
