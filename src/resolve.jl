@@ -5,17 +5,17 @@ conditions)
 https://gist.github.com/simonbyrne/30522225543b86f3f20e084220c2f485
 =#
 
-function resolve_filter(_conds::Vector{Expr})
-    fields, conds = resolve_conds(_conds)
-    cond = aggr(conds)
-    fdef = Expr(:->, Expr(:tuple, fields...), cond)
+function resolve_filter(conds::Vector{Expr})
+    fields, rconds = resolve_conds(conds)
+    rcond = aggr(rconds)
+    fdef = Expr(:->, Expr(:tuple, fields...), rcond)
     return gensym("f"), fdef, fields
 end
 
-function resolve_conds(_conds)
+function resolve_conds(conds)
     fields = Set{Symbol}()
-    conds = [ resolve!(_cond, fields) for _cond in _conds ]
-    return fields, conds
+    rconds = [ resolve!(cond, fields) for cond in conds ]
+    return fields, rconds
 end
 
 resolve!(x, fields) = x
@@ -26,7 +26,7 @@ end
 
 function resolve!(ex::Expr, fields)
     if ex.head == :$
-        return ex.args[1]
+        return esc(ex.args[1])
     elseif ex.head == :call
         return Expr(:call, exf(ex), [ resolve!(arg, fields) for arg in exfargs(ex) ]...)
     elseif ex.head == :comparison
@@ -36,4 +36,4 @@ function resolve!(ex::Expr, fields)
     end
 end
 
-aggr(conds) = foldl((x,y)->:($x & $y), conds)
+aggr(rconds) = foldl((x,y)->:($x & $y), rconds)

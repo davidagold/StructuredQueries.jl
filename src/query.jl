@@ -1,7 +1,10 @@
-# TO DO: Figure out how to run complicated graphs
 macro query(qry)
     src, g = gen_graph(qry)
+    # generate expressions to define filtering kernels and set FilterHelpers
+    ex_def_kernels, ex_set_helpers! = gen_filter_help(g)
     return quote
+        $ex_def_kernels
+        $ex_set_helpers!
         $(esc(src[1])) |> x -> set_src!($g, x)
         $g
     end
@@ -43,4 +46,22 @@ function gen_node!(ex, piped_to, T, src)
     else # if piped to, assume all args are conditions
         return x -> T(x, args)
     end
+end
+
+function gen_filter_help(g)
+    ex_def_kernels = Expr(:block)
+    ex_set_helpers! = Expr(:block)
+    return gen_filter_help!(g, ex_def_kernels, ex_set_helpers!)
+end
+
+gen_filter_help!(g::DataNode, ex_def_kernels, ex_set_helpers!) =
+    ex_def_kernels, ex_set_helpers!
+gen_filter_help!(g::QueryNode, ex_def_kernels, ex_set_helpers!) =
+    gen_filter_help!(g.input, ex_def_kernels, ex_set_helpers!)
+
+function gen_filter_help!(g::FilterNode, ex_def_kernels, ex_set_helpers!)
+    f, fdef, fields = resolve_filter(g.conds)
+    push!(ex_def_kernels.args, :( $f = $fdef ))
+    push!(ex_set_helpers!.args, :( set_hlpr!($g, FilterHelper($f, $fields)) ))
+    return gen_filter_help!(g.input, ex_def_kernels, ex_set_helpers!)
 end

@@ -8,7 +8,7 @@ macro filter(input::Symbol, _conds::Expr...)
         $f = $fdef
         hlpr = FilterHelper($f, $fields)
         g = FilterNode($(esc(input)), $conds, hlpr)
-        return run(g.input, g)
+        _collect(g)
     end
 end
 
@@ -19,16 +19,7 @@ macro filter(_conds::Expr...)
     return quote
         $f = $fdef
         hlpr = FilterHelper($f, $fields)
-        g = FilterNode(gensym(), $conds, hlpr)
-        return run(CurryNode(), g)
+        g = FilterNode(DataNode(), $conds, hlpr)
+        _collect(CurryNode(), g)
     end
-end
-
-run(::CurryNode, g::FilterNode) = x -> run(x, g)
-run(input::DataNode, g::FilterNode) = run(input.input, g)
-function run(df::DataFrames.DataFrame, g::FilterNode)
-    hlpr = g.hlpr
-    cols = [ df[field] for field in hlpr.fields ]
-    rows = bitbroadcast(hlpr.kernel, cols...)
-    return df[rows, :]
 end

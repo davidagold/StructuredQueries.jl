@@ -13,5 +13,6 @@ include("select.jl")
 include("filter.jl")
 include("groupby.jl")
 include("resolve.jl")
+include("collect.jl")
 
 end # module
