@@ -8,7 +8,7 @@ macro filter(input::Symbol, _conds::Expr...)
         $f = $fdef
         hlpr = FilterHelper($f, $fields)
         g = FilterNode($(esc(input)), $conds, hlpr)
-        return run(g.input, g)
+        run(g)
     end
 end
 
@@ -19,8 +19,8 @@ macro filter(_conds::Expr...)
     return quote
         $f = $fdef
         hlpr = FilterHelper($f, $fields)
-        g = FilterNode(gensym(), $conds, hlpr)
-        return run(CurryNode(), g)
+        g = FilterNode(DataNode(), $conds, hlpr)
+        run(CurryNode(), g)
     end
 end
 

@@ -51,6 +51,6 @@ for T in (:FilterNode, :SelectNode, :GroupbyNode)
 end
 
 has_src(g::QueryNode) = has_src(g.input)
-has_src(g::DataNode) = isdefined(g.input)
+has_src(g::DataNode) = isdefined(g, :input)
 set_src!(g::QueryNode, data) = set_src!(g.input, data)
 set_src!(g::DataNode, data) = (g.input = data; data)
