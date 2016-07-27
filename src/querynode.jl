@@ -32,6 +32,9 @@ function (::Type{FilterNode})(input, conds, hlpr)
     return res
 end
 
+has_hlpr(g::FilterNode) = isdefined(g, :hlpr)
+set_hlpr!(g::FilterNode, hlpr::FilterHelper) = (g.hlpr = hlpr; return hlpr)
+
 immutable SelectNode <: QueryNode
     input::QueryNode
     fields::Vector{Symbol}
