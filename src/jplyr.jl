@@ -4,9 +4,8 @@ using DataFrames
 export @query,
     @filter,
     @select,
-    @groupby,
+    @groupby
     # following are exported only for test purposes
-    resolve
 
 include("querynode.jl")
 include("query.jl")

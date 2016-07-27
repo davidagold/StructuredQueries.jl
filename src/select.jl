@@ -10,21 +10,19 @@ df |> @select(fieldname)
 where `df` and `fieldname` are both valid names bound to DataFrame objects.
 =#
 macro select(args...)
-    # for case where first arg is data input
     input, cols = args[1], args[2:end]
     _input = QuoteNode(input)
-    g1 = _select(input, collect(cols))
-    # for case where all args are column specifications
-    g2 = _select(gensym(), collect(args))
     return quote
         try # assume first that first arg is data input
-            run($(esc(input)), $g1)
+            g = SelectNode($(esc(input)), collect($cols))
+            run(g.input, g)
         catch err
             #= if error because first arg isn't valid name, assume it is a
             column specification and return curried run. Otherwise, throw
             the error =#
             if err == UndefVarError($_input)
-                run($g2)
+                g = SelectNode(DataNode(), collect($args))
+                run(CurryNode(), g)
             else
                 throw(err)
             end
@@ -32,8 +30,6 @@ macro select(args...)
     end
 end
 
-_select(fields) = x -> _select(x, fields)
-_select(input, fields) = SelectNode(input, fields)
-
-run(g::SelectNode) = x -> run(x, g)
+run(::CurryNode, g::SelectNode) = x -> run(x, g)
+run(input::DataNode, g::SelectNode) = run(input.input, g)
 run(df::DataFrames.DataFrame, g::SelectNode) = df[g.fields]
