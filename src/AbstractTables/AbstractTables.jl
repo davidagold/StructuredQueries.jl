@@ -1,5 +1,7 @@
 module AbstractTables
     using Compat
+    using Reexport
+    @reexport using NullableArrays
 
     export  Table,
             index,

@@ -59,6 +59,9 @@ Returns:
 
 * index::Dict{Symbol, Int}: a mapping from each field to its respective
 canonical index
+
+Notes: This default implementation is not efficient. Concrete types
+`T <: AbstractTable` should implement their own versions.
 """
 function index(tbl::AbstractTable)
     res = Dict{Symbol, Int}()
