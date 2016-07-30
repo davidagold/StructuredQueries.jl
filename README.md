@@ -116,6 +116,8 @@ Note that commands issued within the argument to an `@query` call are not annote
 
 ## Implementation details
 
+NOTE [7/30/16]: While the following details capture the gist of what's going on, they are **not current**. Stay tuned for updates to this section.
+
 The strategy for `jplyr` facilities is to produce and "run" graphs consisting of linked `QueryNode` objects that represent the flow of data through manipulation commands such as `@select` and `@filter`. The graph is produced at macroexpand-time and hence does not contain any information about the type of the data source. Rather, the graph (and any other information/objects that may be appropriate) are passed to a `run` method spliced into the call-site of the original command. `run` then in turn dispatches on the type of the data source.
 
 The details of the `@filter` macro are a good reflection of this package's general strategy. Suppose we've loaded the `iris` dataset
