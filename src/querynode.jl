@@ -1,5 +1,6 @@
 abstract QueryNode
 abstract QueryHelper
+typealias QueryArg Union{Symbol, Expr}
 
 type DataNode <: QueryNode
     input
@@ -32,28 +33,40 @@ function (::Type{FilterNode})(input, conds, hlpr)
     return res
 end
 
-has_hlpr(g::FilterNode) = isdefined(g, :hlpr)
-set_hlpr!(g::FilterNode, hlpr::FilterHelper) = (g.hlpr = hlpr; return hlpr)
-
 immutable SelectNode <: QueryNode
     input::QueryNode
-    fields::Vector{Symbol}
+    fields::Vector{QueryArg}
 end
 
 immutable GroupbyNode <: QueryNode
     input::QueryNode
-    fields::Vector{Symbol}
+    fields::Vector{QueryArg}
 end
 
-immutable CurryNode end
+immutable OrderbyNode <: QueryNode
+    input::QueryNode
+    fields::Vector{QueryArg}
+end
 
 typealias DataSource Union{DataFrames.DataFrame}
+immutable MutateNode <: QueryNode
+    input::QueryNode
+    args::Vector{QueryArg}
+end
 
 for T in (:FilterNode, :SelectNode, :GroupbyNode)
     @eval (::Type{$T})(input::DataSource, xs...) = $T(DataNode(input), xs...)
+immutable SummarizeNode
+    input::QueryNode
+    args::Vector{Expr}
 end
+
+immutable CurryNode end
 
 has_src(g::QueryNode) = has_src(g.input)
 has_src(g::DataNode) = isdefined(g, :input)
 set_src!(g::QueryNode, data) = set_src!(g.input, data)
 set_src!(g::DataNode, data) = (g.input = data; data)
+
+has_hlpr(g::FilterNode) = isdefined(g, :hlpr)
+set_hlpr!(g::FilterNode, hlpr::FilterHelper) = (g.hlpr = hlpr; return hlpr)

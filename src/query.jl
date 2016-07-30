@@ -5,7 +5,7 @@ macro query(qry)
     return quote
         $ex_def_kernels
         $ex_set_helpers!
-        $(esc(src[1])) |> x -> set_src!($g, x)
+        set_src!($g, $(esc(src[1])))
         $g
     end
 end
@@ -13,18 +13,26 @@ end
 exf(ex) = ex.args[1]
 exfargs(ex) = ex.args[2:end]
 
-const manip_types = Dict{Symbol, DataType}(:filter => FilterNode,
-                                           :select => SelectNode,
-                                           :groupby => GroupbyNode)
+const manip_types = Dict{Symbol, DataType}(
+    :filter => FilterNode,
+    :select => SelectNode,
+    :groupby => GroupbyNode,
+    :orderby => OrderbyNode,
+    :mutate => MutateNode,
+    :summarize => SummarizeNode,
+    :summarise => SummarizeNode
+)
 
 function gen_graph(x)
     src = Vector{Symbol}()
     return src, gen_graph!(x, false, src)
 end
+
 function gen_graph!(x::Symbol, piped_to, src)
     isempty(src) && push!(src, x)
     return DataNode()
 end
+
 function gen_graph!(ex::Expr, piped_to, src)
     if ex.head == :call
         f = exf(ex)
