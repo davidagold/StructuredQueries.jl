@@ -7,7 +7,7 @@ macro filter(input::Symbol, _conds::Expr...)
     return quote
         $f = $fdef
         hlpr = FilterHelper($f, $fields)
-        g = FilterNode($(esc(input)), $conds, hlpr)
+        g = FilterNode(DataNode($(esc(input))), $conds, hlpr)
         _collect(g)
     end
 end

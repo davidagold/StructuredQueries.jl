@@ -48,14 +48,11 @@ immutable OrderbyNode <: QueryNode
     fields::Vector{QueryArg}
 end
 
-typealias DataSource Union{DataFrames.DataFrame}
 immutable MutateNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
 end
 
-for T in (:FilterNode, :SelectNode, :GroupbyNode)
-    @eval (::Type{$T})(input::DataSource, xs...) = $T(DataNode(input), xs...)
 immutable SummarizeNode
     input::QueryNode
     args::Vector{Expr}

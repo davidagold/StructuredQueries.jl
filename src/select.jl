@@ -14,7 +14,7 @@ macro select(args...)
     _input = QuoteNode(input)
     return quote
         try # assume first that first arg is data input
-            g = SelectNode($(esc(input)), collect($cols))
+            g = SelectNode(DataNode($(esc(input))), collect($cols))
             _collect(g)
         catch err
             #= if error because first arg isn't valid name, assume it is a

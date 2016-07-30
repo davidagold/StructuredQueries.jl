@@ -1,5 +1,4 @@
 module jplyr
-using DataFrames
 
 export @query,
     @filter,
