@@ -1,4 +1,9 @@
 module jplyr
+using Reexport
+
+# for prototyping purposes
+include("AbstractTables/AbstractTables.jl")
+@reexport using .AbstractTables
 
 export @query,
     @filter,
