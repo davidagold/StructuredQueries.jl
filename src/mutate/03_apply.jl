@@ -7,7 +7,8 @@ into which to store the results.
 @noinline function _apply_tuple_func(f, tbl, colnames)
     # Extract the columns from the table and create a tuple iterator.
     cols = [tbl[colname] for colname in colnames]
-    tpl_itr = zip(cols...)
+    # row_itr = eachrow(tbl, colnames...)
+    row_itr = zip(cols...)
 
     # Determine the tuple type of the iterator after unwrapping all Nullables.
     #
@@ -31,7 +32,8 @@ into which to store the results.
     output = NullableArray(t, n)
 
     # Fill the new column in row-by-row.
-    _fill_output!(output, f, tpl_itr)
+    # @code_warntype _fill_output!(output, f, row_itr)
+    _fill_output!(output, f, row_itr)
 
     # Return the output
     return output

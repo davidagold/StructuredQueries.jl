@@ -48,9 +48,16 @@ immutable OrderbyNode <: QueryNode
     fields::Vector{QueryArg}
 end
 
-immutable MutateNode <: QueryNode
+type MutateHelper
+    hlprs
+end
+
+(::Type{MutateHelper})(hlprs...) = MutateHelper(collect(hlprs))
+
+type MutateNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
+    hlpr::MutateHelper
 end
 
 immutable SummarizeNode

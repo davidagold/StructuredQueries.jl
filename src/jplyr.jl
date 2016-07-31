@@ -8,7 +8,8 @@ include("AbstractTables/AbstractTables.jl")
 export @query,
     @filter,
     @select,
-    @groupby
+    @groupby,
+    @mutate
     # following are exported only for test purposes
 
 include("querynode.jl")
@@ -16,6 +17,7 @@ include("query.jl")
 include("select.jl")
 include("filter.jl")
 include("groupby.jl")
+include("mutate.jl")
 include("resolve.jl")
 include("collect.jl")
 
