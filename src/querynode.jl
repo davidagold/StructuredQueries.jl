@@ -16,61 +16,83 @@ end
 
 type FilterHelper <: QueryHelper
     kernel
-    fields::Set{Symbol}
+    flds
 end
 
 type FilterNode <: QueryNode
     input::QueryNode
-    conds::Vector{Expr}
-    hlpr::FilterHelper
+    args::Vector{Expr}
+    helper::FilterHelper
 
     FilterNode(input, conds) = new(input, conds)
 end
 
-function (::Type{FilterNode})(input, conds, hlpr)
-    res = FilterNode(input, conds)
-    res.hlpr = hlpr
-    return res
-end
-
 immutable SelectNode <: QueryNode
     input::QueryNode
-    fields::Vector{QueryArg}
+    args::Vector{QueryArg}
 end
 
 immutable GroupbyNode <: QueryNode
     input::QueryNode
-    fields::Vector{QueryArg}
+    args::Vector{QueryArg}
 end
 
 immutable OrderbyNode <: QueryNode
     input::QueryNode
-    fields::Vector{QueryArg}
+    args::Vector{QueryArg}
 end
 
-type MutateHelper
-    hlprs
+type MutateHelper <: QueryHelper
+    helpers
 end
 
-(::Type{MutateHelper})(hlprs...) = MutateHelper(collect(hlprs))
+(::Type{MutateHelper})(helpers...) = MutateHelper(collect(helpers))
 
 type MutateNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
-    hlpr::MutateHelper
+    helper::MutateHelper
+
+    (::Type{MutateNode})(input, args) = new(input, args)
 end
 
-immutable SummarizeNode
+type SummarizeHelper <: QueryHelper
+    parts
+end
+
+type SummarizeNode <: QueryNode
     input::QueryNode
     args::Vector{Expr}
+    helper::SummarizeHelper
+
+    (::Type{SummarizeNode})(input, args) = new(input, args)
 end
 
 immutable CurryNode end
+
+for T in (:FilterNode, :MutateNode, :SummarizeNode)
+    @eval function (::Type{$T})(input, conds, helper)
+        res = $T(input, conds)
+        set_helper!(res, helper)
+        return res
+    end
+end
 
 has_src(g::QueryNode) = has_src(g.input)
 has_src(g::DataNode) = isdefined(g, :input)
 set_src!(g::QueryNode, data) = set_src!(g.input, data)
 set_src!(g::DataNode, data) = (g.input = data; data)
 
-has_hlpr(g::FilterNode) = isdefined(g, :hlpr)
-set_hlpr!(g::FilterNode, hlpr::FilterHelper) = (g.hlpr = hlpr; return hlpr)
+typealias NeedsHelper Union{FilterNode, MutateNode, SummarizeNode}
+const _helper_types = Dict{DataType, DataType}(
+    FilterNode => FilterHelper,
+    MutateNode => MutateHelper,
+    SummarizeNode => SummarizeHelper
+)
+
+has_helper(g::NeedsHelper) = isdefined(g, :helper)
+function set_helper!{T<:NeedsHelper, S}(g::T, helper::S)
+    @assert _helper_types[T] == S
+    g.helper = helper
+    return helper
+end

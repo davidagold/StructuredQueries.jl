@@ -37,13 +37,21 @@ Recursively descends an expression's AST to find all of the symbols contained
 in it. Inserts any symbols that are found into the set argument, `s`.
 """
 function _find_symbols!(s::Set{Symbol}, e::Expr)
-    @assert e.head == :call
+    @assert e.head == :call || e.head == :quote || e.head == :$
     # Skip name of function being called, then descend through arguments.
     if length(e.args) > 1
         for i in 2:length(e.args)
             _find_symbols!(s, e.args[i])
         end
     end
+    return
+end
+
+"""
+As part of the recursive descent into an AST, handle QuoteNode objects.
+"""
+function _find_symbols!(s::Set{Symbol}, e::QuoteNode)
+    push!(s, e)
     return
 end
 
@@ -90,12 +98,28 @@ end
 Replace all known symbols with tuple indexing expressions.
 """
 function _replace_symbols!(e::Expr, mapping::Dict, tpl_name::Symbol)
-    @assert e.head == :call
+    @assert e.head == :call || e.head == :quote || e.head == :$
+    # Escape "interpolated" symbols
+    if e.head == :$
+        e.head = :escape
+        return
+    end
+    # Escape the functions being called so they're not rooted to the TBL
+    # module.
+    e.args[1] = esc(e.args[1])
     # Skip name of function being called, then descend through arguments.
     if length(e.args) > 1
         for i in 2:length(e.args)
             if isa(e.args[i], Symbol)
                 e.args[i] = Expr(:ref, tpl_name, mapping[e.args[i]])
+            elseif isa(e.args[i], QuoteNode)
+                e.args[i] = e.args[i].value
+            elseif isa(e.args[i], Expr)
+                if e.args[i].head == :quote
+                    e.args[i] = esc(e.args[i].args[1])
+                else
+                    _replace_symbols!(e.args[i], mapping, tpl_name)
+                end
             else
                 _replace_symbols!(e.args[i], mapping, tpl_name)
             end
