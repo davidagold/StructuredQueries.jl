@@ -1,10 +1,10 @@
 macro query(qry)
     src, g = gen_graph(qry)
-    # generate expressions to define filtering kernels and set FilterHelpers
-    ex_def_kernels, ex_set_helpers! = gen_filter_help(g)
+    # generate expression to set helpers.
+    # TODO: leverage graph information to optimize helpers/execution
+    set_helpers!_ex = build_helper_exs(g)
     return quote
-        $ex_def_kernels
-        $ex_set_helpers!
+        $set_helpers!_ex
         set_src!($g, $(esc(src[1])))
         $g
     end
@@ -56,20 +56,20 @@ function gen_node!(ex, piped_to, T, src)
     end
 end
 
-function gen_filter_help(g)
-    ex_def_kernels = Expr(:block)
-    ex_set_helpers! = Expr(:block)
-    return gen_filter_help!(g, ex_def_kernels, ex_set_helpers!)
+function build_helper_exs(g)
+    def_kernels_ex = Expr(:block)
+    set_helpers!_ex = Expr(:block)
+    return build_helper_exs!(g, set_helpers!_ex)
 end
 
-gen_filter_help!(g::DataNode, ex_def_kernels, ex_set_helpers!) =
-    ex_def_kernels, ex_set_helpers!
-gen_filter_help!(g::QueryNode, ex_def_kernels, ex_set_helpers!) =
-    gen_filter_help!(g.input, ex_def_kernels, ex_set_helpers!)
+build_helper_exs!(g::DataNode, set_helpers!_ex) = set_helpers!_ex
+build_helper_exs!(g::QueryNode, set_helpers!_ex) =
+    build_helper_exs!(g.input, set_helpers!_ex)
 
-function gen_filter_help!(g::FilterNode, ex_def_kernels, ex_set_helpers!)
-    f, fdef, fields = resolve_filter(g.conds)
-    push!(ex_def_kernels.args, :( $f = $fdef ))
-    push!(ex_set_helpers!.args, :( set_hlpr!($g, FilterHelper($f, $fields)) ))
-    return gen_filter_help!(g.input, ex_def_kernels, ex_set_helpers!)
+function build_helper_exs!{T<:QueryNode}(g::T, set_helpers!_ex)
+    helper_ex = _build_helper_ex(T, g.args)
+    push!(set_helpers!_ex.args,
+          :( set_helper!($g, $helper_ex) )
+    )
+    return build_helper_exs!(g.input, set_helpers!_ex)
 end
