@@ -1,3 +1,4 @@
+# TODO: Include discussion of null storage patterns
 """
 `AbstractTable` interface minimal requirements:
 
@@ -5,6 +6,7 @@
 `fields(tbl)` => `Vector{Symbol}`
 `index(tbl)` => `Dict{Symbol, Int}`
 `setindex!(...)` exclusive means of adding new columns
+`empy(tbl)` return an empty table of the same type as `tbl`
 
 The contents of `columns(tbl)[i]` must be iterable. The orderings of
 columns(tbl) and fields(tbl) must be consistent -- that is, fields(tbl)[i] must
@@ -19,15 +21,24 @@ the `AbstractTable` interface):
 `getindex(tbl, fld)` return the column corresponding to field `fld`
 `eachrow(tbl)` return an iterator over rows realized as tuples
 
-We do not guarantee that the number of rows can be directly obtained.
+We do not guarantee that the number of rows can be directly obtained. However,
+the AbstractTable interface provides traits that can be used to communicate
+patterns of column data storage. If, for a user-defined type `T<:AbstractTable`,
+the number of rows can be directly accessed via `nrow(tbl::T)`, the user may
+set
+
+    `AbstractTables.tblrowdim(::T) = AbstractTable.HasRowDim()`
+
+to communicate this fact to code-path selection mechanisms in methods that deal
+generally with `AbstractTable`s.
 """
 abstract AbstractTable
 
 ### Traits
 
-abstract RowDim
-immutable HasRowDim <: RowDim end
-immutable RowDimUnknown <: RowDim end
+abstract TableRowDim
+immutable HasRowDim <: TableRowDim end
+immutable RowDimUnknown <: TableRowDim end
 
 tblrowdim(tbl::AbstractTable) = RowDimUnknown()
 nrow(tbl::AbstractTable) = _nrow(tbl, tblrowdim(tbl))
@@ -55,7 +66,7 @@ Base.ndims(::AbstractTable) = 2
 ### Iteration and enumeration
 
 """
-"Enumerate" the columns of an AbstractTable by field name.
+"Enumerate" the columns of an AbstractTable by field (column name).
 
 Arguments:
 
@@ -69,9 +80,13 @@ Returns:
 eachcol(tbl::AbstractTable) = zip(fields(tbl), columns(tbl))
 
 """
+    `eachrow(tbl, [flds...])`
+
+Return an iterator over the rows (materialized as `Tuple`s) of `tbl`. If `flds`
+are specified, the tuples returned by the row iterator will contain data from
+only the respective columns.
 """
 eachrow(tbl::AbstractTable) = zip(columns(tbl)...)
-
 function eachrow(tbl::AbstractTable, flds...)
     idx = index(tbl)
     cols = columns(tbl)
