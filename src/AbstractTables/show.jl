@@ -119,12 +119,20 @@ function show_tbl_rows(io::IO, tbl, maxwidths, rightmost, rowlabel, rowlimit)
         end
         i += 1
     end
-    ((st > rowlimit) & (!done(rows, st))) && print_row_footer(io)
+    if (i > rowlimit) & (!done(rows, st))
+        print_row_footer(io, tbl, tblrowdim(tbl), rowlimit)
+    end
+    return
 end
 
-function print_row_footer(io)
+function print_row_footer(io, tbl::AbstractTable, ::RowDimUnknown, rowlimit)
     println(io, "\n⋮")
     print(io, "with more rows.")
+end
+
+function print_row_footer(io, tbl::AbstractTable, ::HasRowDim, rowlimit)
+    println(io, "\n⋮")
+    @printf(io, "with %d more rows.", nrow(tbl)-rowlimit)
 end
 
 function show_tbl_header(io, tbl, maxwidths, rightmost, rowlabel)

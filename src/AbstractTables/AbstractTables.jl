@@ -3,14 +3,17 @@ module AbstractTables
     using Reexport
     @reexport using NullableArrays
 
-    export  Table,
+    export  AbstractTable,
+            Table,
             index,
             fields,
             nrow,
             ncol,
             columns,
             eachcol,
-            eachrow
+            eachrow,
+            empty,
+            eltypes
             # for test purposes
 
     include("abstracttable.jl")

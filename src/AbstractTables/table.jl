@@ -36,6 +36,10 @@ type Table <: AbstractTable
     end
 end
 
+(::Type{Table})() = Table(Dict{Symbol, Int}(), Any[])
+
+empty(tbl::Table) = Table()
+
 _allowsnulls(A::Array) = false
 _allowsnulls(A::AbstractArray) = true
 _hasnulls(A::Array) = false
@@ -105,14 +109,17 @@ end
 
 """
 """
-immutable TableRowIterator{N}
-    cols::Vector{Any}
+immutable TableRowIterator{T}
+    cols::T
 end
 
+# (::Type{TableRowIterator})(col_tup) =
+
 Base.start(itr::TableRowIterator) = 1
-@generated function Base.next{N}(itr::TableRowIterator{N}, st)
+@generated function Base.next{T}(itr::TableRowIterator{T}, st)
+    ncols = length(fieldnames(T))
     ex_tup = Expr(:tuple)
-    for j in 1:N
+    for j in 1:ncols
         push!(ex_tup.args, :( itr.cols[$j][st] ))
     end
     return quote
@@ -126,8 +133,8 @@ end
 
 """
 """
-eachrow(tbl::Table) = TableRowIterator{ncol(tbl)}(columns(tbl))
+eachrow(tbl::Table) = TableRowIterator(tuple(columns(tbl)...))
 function eachrow(tbl::Table, flds...)
     cols = [ tbl[fld] for fld in flds ]
-    TableRowIterator{length(cols)}(cols)
+    TableRowIterator(tuple(cols...))
 end
