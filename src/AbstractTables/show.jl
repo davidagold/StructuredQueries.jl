@@ -47,10 +47,11 @@ function getmaxwidths(tbl::AbstractTable, rowlabel, rowlimit)
         end
         i += 1
     end
+    flds = fields(tbl)
     for j in 1:ncols
-        maxwidths[j] = max(maximum(widths[j]), ndigits(ourstrwidth(rowlabel)))
+        maxwidths[j] = max(maximum(widths[j]), (ourstrwidth(flds[j])))
     end
-    maxwidths[end] = ndigits(rowlimit) + 1
+    maxwidths[end] = max(ourstrwidth(rowlabel), ndigits(rowlimit)+1)
     return maxwidths
 end
 
