@@ -7,6 +7,7 @@
 `index(tbl)` => `Dict{Symbol, Int}`
 `setindex!(...)` exclusive means of adding new columns
 `empy(tbl)` return an empty table of the same type as `tbl`
+`copy(tbl)` return a copy of `tbl`
 
 The contents of `columns(tbl)[i]` must be iterable. The orderings of
 columns(tbl) and fields(tbl) must be consistent -- that is, fields(tbl)[i] must

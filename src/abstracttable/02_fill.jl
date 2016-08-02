@@ -42,7 +42,7 @@ the tuple is nullable and (conditional on being nullable) null-valued.
 end
 
 """
- +Grow a list of indices satisfying the predicate.
+Grow a list of indices satisfying the predicate.
 """
 @noinline function _grow_output!(indices, f, tpl_itr)
     for (i, tpl) in enumerate(tpl_itr)
@@ -80,8 +80,8 @@ end
      return
  end
 
- function _get_subset{T}(tbl::T, indices)
-     new_tbl = T()
+ function _get_subset(tbl, indices)
+     new_tbl = empty(tbl)
      n = length(indices)
      for (col_name, col) in eachcol(tbl)
          new_col = NullableArray(eltype(eltype(col)), n)

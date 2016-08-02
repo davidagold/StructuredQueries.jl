@@ -24,7 +24,6 @@ end
 
 function _build_summarize_helper(exprs)
     helper_parts_ex = Expr(:ref, :Tuple)
-    summarize_helper_ex = Expr(:call, :SummarizeHelper, helper_parts_ex)
     for e in exprs
         col_name = _get_column_name(e)
         # Extract the first layer, which we assume is the summarization function
@@ -43,5 +42,7 @@ function _build_summarize_helper(exprs)
               )
         )
     end
-    return summarize_helper_ex
+    return quote
+        Helper{SummarizeNode}($helper_parts_ex)
+    end
 end

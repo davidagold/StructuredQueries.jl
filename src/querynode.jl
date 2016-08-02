@@ -2,6 +2,12 @@ abstract QueryNode
 abstract QueryHelper
 typealias QueryArg Union{Symbol, Expr}
 
+"""
+Represent a data source in a manipulation graph.
+
+Notes: Any manipulation graph must have `DataNode` (which may possibly be
+empty) as its base.
+"""
 type DataNode <: QueryNode
     input
 
@@ -14,56 +20,68 @@ function (::Type{DataNode})(x)
     return res
 end
 
-type FilterHelper <: QueryHelper
-    kernel
-    flds
+
+# TODO: clarify the following explanation.
+"""
+A `Helper{T<:QueryNode}` wraps a collection of objects that are used during the
+execution of a node of type `T` over an `AbstractTable`. Some of these objects
+-- in particular, row-wise kernels -- rely on processing that must be performed
+at macroexpand-time. Since the type of a manipulation graph's base data source
+is not known at macroexpand-time, these objects must be produced regardless of
+whether or not the base data source is an `AbstractTable`. `Helper`s store
+these objects for use in case the base data source is indeed an `AbstractTable`.
+"""
+type Helper{T} <: QueryHelper
+    parts::Vector{Tuple}
 end
 
+"""
+Represent a filter operation in a manipulation graph.
+
+Fields:
+
+* `input::QueryNode`: a node representing either a data source or preceding
+manipulation
+* `args::Vector{Expr}`: a vector of filtering expressions
+* `helper::FilterHelper`: a helper for run-time execution of the `FilterNode`
+over an `AbstractTable`
+"""
 type FilterNode <: QueryNode
     input::QueryNode
     args::Vector{Expr}
-    helper::FilterHelper
+    helper::Helper{FilterNode}
 
     FilterNode(input, conds) = new(input, conds)
 end
 
-immutable SelectNode <: QueryNode
+type SelectNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
 end
 
-immutable GroupbyNode <: QueryNode
+type GroupbyNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
 end
 
-immutable OrderbyNode <: QueryNode
+type OrderbyNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
 end
-
-type MutateHelper <: QueryHelper
-    helpers
-end
-
-(::Type{MutateHelper})(helpers...) = MutateHelper(collect(helpers))
 
 type MutateNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
-    helper::MutateHelper
+    helper::Helper{MutateNode}
 
     (::Type{MutateNode})(input, args) = new(input, args)
 end
 
-type SummarizeHelper <: QueryHelper
-    parts
-end
-
+# TODO: think about what sort of information would be useful to store in `args`.
 type SummarizeNode <: QueryNode
     input::QueryNode
     args::Vector{Expr}
-    helper::SummarizeHelper
+    helper::Helper{SummarizeNode}
 
     (::Type{SummarizeNode})(input, args) = new(input, args)
 end
@@ -84,15 +102,10 @@ set_src!(g::QueryNode, data) = set_src!(g.input, data)
 set_src!(g::DataNode, data) = (g.input = data; data)
 
 typealias NeedsHelper Union{FilterNode, MutateNode, SummarizeNode}
-const _helper_types = Dict{DataType, DataType}(
-    FilterNode => FilterHelper,
-    MutateNode => MutateHelper,
-    SummarizeNode => SummarizeHelper
-)
 
 has_helper(g::NeedsHelper) = isdefined(g, :helper)
-function set_helper!{T<:NeedsHelper, S}(g::T, helper::S)
-    @assert _helper_types[T] == S
+# Diagonal dispatch buys us some safety
+function set_helper!{T<:NeedsHelper}(g::T, helper::Helper{T})
     g.helper = helper
     return helper
 end
