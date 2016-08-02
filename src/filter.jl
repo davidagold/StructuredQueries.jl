@@ -12,7 +12,7 @@ end
 # for case in which data source is piped to @filter call
 macro filter(_args::Expr...)
     args = collect(_args)
-    filter_helper_ex = _build_filter_helper(args)
+    filter_helper_ex = _build_helper_ex(FilterNode, args)
     return quote
         g = FilterNode(DataNode(), $args, $filter_helper_ex)
         _collect(CurryNode(), g)

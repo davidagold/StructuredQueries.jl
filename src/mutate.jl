@@ -11,7 +11,7 @@ end
 
 macro mutate(_args::Expr...)
     args = collect(_args)
-    mutate_helper_ex = _build_mutate_helper(MutateNode, args)
+    mutate_helper_ex = _build_helper_ex(MutateNode, args)
     return quote
         g = MutateNode(DataNode(), $args, $mutate_helper_ex)
         _collect(CurryNode(), g)
