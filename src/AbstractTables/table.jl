@@ -5,6 +5,7 @@ Fields:
 
 * `index::Dict{Symbol, Int}`: A mapping from symbols to numeric column indices
 * `columns::Vector{Any}`: A vector of iterable column objects
+* `fields::Vector{Symbol}`: A vector of fields (column names)
 * `allowsnulls::Vector{Bool}`: A vector of flags indicating whether the
 respective column allows storage of null values
 * `hasnulls::Vector{Bool}`: A vector of flags indicating whether the
@@ -23,6 +24,7 @@ The types of columns are not coerced upon `Table` initialization.
 type Table <: AbstractTable
     index::Dict{Symbol, Int}
     columns::Vector{Any}
+    fields::Vector{Symbol}
     allowsnulls::Vector{Bool}
     hasnulls::Vector{Bool}
 
@@ -43,12 +45,16 @@ type Table <: AbstractTable
                 throw(ArgumentError(msg))
             end
         end
+        fields = Array{Symbol}(ncols)
+        for key in keys(index)
+            fields[idx[key]] = key
+        end
         length(index) == length(columns) || error()
-        new(index, columns, allowsnulls, hasnulls)
+        new(index, columns, fields, allowsnulls, hasnulls)
     end
 end
 
-(::Type{Table})() = Table(Dict{Symbol, Int}(), Any[])
+# (::Type{Table})() = Table(Dict{Symbol, Int}(), Any[])
 
 """
 Initialize an empty `Table`.
@@ -111,14 +117,7 @@ Notes: `fields(tbl)` is dual to `index(tbl)` in the sense that
 fields(tbl)[(index(tbl)[fld]] == fld
 index(tbl)[(fields(tbl)[i]] == i
 """
-function fields(tbl::Table)
-    res = Array{Symbol}(ncol(tbl))
-    idx = index(tbl)
-    for key in keys(idx)
-        res[idx[key]] = key
-    end
-    res
-end
+fields(tbl::Table) = tbl.fields
 
 """
     `nrow(tbl::Table)`
@@ -150,12 +149,14 @@ function Base.setindex!(tbl::Table, col, fld::Symbol)
     end
     j = get!(()->ncols+1, index(tbl), fld)
     cols = columns(tbl)
+    flds = fields(tbl)
     if j <= ncols
         cols[j] = col
         tbl.allowsnulls[j] = _allowsnulls(col)
         tbl.hasnulls[j] = _hasnulls(col)
     else
         push!(cols, col)
+        push!(flds, fld)
         push!(tbl.allowsnulls, _allowsnulls(col))
         push!(tbl.hasnulls, _hasnulls(col))
     end
