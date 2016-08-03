@@ -29,7 +29,7 @@ function _collect(tbl::AbstractTable, g::SummarizeNode)
     res = empty(tbl)
     helper = g.helper
     for (col_name, kernel, g, ind2sym) in helper.parts
-        res[col_name] = [_summarize_apply(kernel, g, tbl, ind2sym)]
+        res[col_name] = NullableArray([_summarize_apply(kernel, g, tbl, ind2sym)])
     end
     return res
 end

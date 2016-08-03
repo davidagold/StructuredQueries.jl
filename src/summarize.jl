@@ -1,5 +1,6 @@
 macro summarize(tbl_name::Symbol, _exprs...)
     exprs = collect(_exprs)
+    # check_for_summarize(exprs)
     summarize_helper_ex = _build_helper_ex(SummarizeNode, exprs)
     return quote
         g = SummarizeNode(DataNode($(esc(tbl_name))),
@@ -22,7 +23,17 @@ macro summarize(_exprs...)
     end
 end
 
+function check_for_summarize(exprs)
+    for e in exprs
+        @assert isa(e, Expr)
+        @assert e.head == :kw
+        @assert e.args[2].head == :call
+    end
+    return
+end
+
 function _build_helper_ex(::Type{SummarizeNode}, exprs)
+    check_for_summarize(exprs)
     helper_parts_ex = Expr(:ref, :Tuple)
     for e in exprs
         col_name = _get_column_name(e)
