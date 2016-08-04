@@ -149,6 +149,7 @@ function show_tbl_header(io, tbl, maxwidths, rightmost, rowlabel)
         j == rightmost ? print(io, " │\n") : print(io, " │ ")
     end
     print_bounding_line(io, maxwidths, rightmost)
+    return
 end
 
 function rightbound(io, maxwidths)
@@ -167,11 +168,16 @@ function rightbound(io, maxwidths)
 end
 
 function show_tbl(io, tbl, rowlabel, displaysummary, rowlimit)
-    displaysummary && println(io, summary(tbl))
-    maxwidths = getmaxwidths(tbl, rowlabel, rowlimit)
-    rightmost = rightbound(io, maxwidths)
-    show_tbl_header(io, tbl, maxwidths, rightmost, rowlabel)
-    show_tbl_rows(io, tbl, maxwidths, rightmost, rowlabel, rowlimit)
+    if ncol(tbl) > 0
+        displaysummary && println(io, summary(tbl))
+        maxwidths = getmaxwidths(tbl, rowlabel, rowlimit)
+        rightmost = rightbound(io, maxwidths)
+        show_tbl_header(io, tbl, maxwidths, rightmost, rowlabel)
+        show_tbl_rows(io, tbl, maxwidths, rightmost, rowlabel, rowlimit)
+    else
+        @printf(io, "An empty %s", typeof(tbl))
+    end
+    return
 end
 
 # 1 space for line-initial | + length of field + 2 spaces + trailing |
