@@ -2,23 +2,26 @@
 # TODO: Make a copy before mutating the copy.
 macro mutate(input::Symbol, _args::Expr...)
     args = collect(_args)
-    mutate_helper_ex = _build_helper_ex(MutateNode, args)
+    g = MutateNode(DataNode(), args)
+    helper_ex = _build_helper_ex(g)
     return quote
-        g = MutateNode(DataNode($(esc(input))), $args, $mutate_helper_ex)
-        _collect(g)
+        set_helper!($g, $helper_ex)
+        _collect($(esc(input)), $g)
     end
 end
 
 macro mutate(_args::Expr...)
     args = collect(_args)
-    mutate_helper_ex = _build_helper_ex(MutateNode, args)
+    g = MutateNode(DataNode(), args)
+    helper_ex = _build_helper_ex(g)
     return quote
-        g = MutateNode(DataNode(), $args, $mutate_helper_ex)
-        _collect(CurryNode(), g)
+        set_helper!($g, $helper_ex)
+        _collect(CurryNode(), $g)
     end
 end
 
-function _build_helper_ex(::Type{MutateNode}, args)
+function _build_helper_ex(g)
+    args = g.args
     helper_args_ex = Expr(:ref, :Tuple)
     for e in args
         res_fld = QuoteNode(_get_column_name(e))

@@ -63,11 +63,9 @@ function build_helper_exs(g)
 end
 
 build_helper_exs!(g::DataNode, set_helpers!_ex) = set_helpers!_ex
-build_helper_exs!(g::QueryNode, set_helpers!_ex) =
-    build_helper_exs!(g.input, set_helpers!_ex)
 
-function build_helper_exs!{T<:QueryNode}(g::T, set_helpers!_ex)
-    helper_ex = _build_helper_ex(T, g.args)
+function build_helper_exs!(g::QueryNode, set_helpers!_ex)
+    helper_ex = _build_helper_ex(g)
     push!(set_helpers!_ex.args,
           :( set_helper!($g, $helper_ex) )
     )

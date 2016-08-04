@@ -3,6 +3,7 @@ quiet = length(ARGS) > 0 && ARGS[1] == "-q"
 anyerrors = false
 
 my_tests = (
+    "select.jl",
     "filter.jl",
     "mutate.jl",
     "summarize.jl",

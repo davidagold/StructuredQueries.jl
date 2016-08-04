@@ -23,9 +23,16 @@ macro select(args...)
             if err == UndefVarError($_input)
                 g = SelectNode(DataNode(), collect($args))
                 _collect(CurryNode(), g)
+            elseif isa(err, MethodError)
+                if err.f == jplyr._collect
+                    g = SelectNode(DataNode(), collect($args))
+                    _collect(CurryNode(), g)
+                end
             else
                 throw(err)
             end
         end
     end
 end
+
+_build_helper_ex(g::SelectNode) = :()
