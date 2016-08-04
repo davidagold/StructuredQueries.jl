@@ -109,3 +109,5 @@ function set_helper!{T<:NeedsHelper}(g::T, helper::Helper{T})
     g.helper = helper
     return helper
 end
+# if a QueryNode doesn't need a helper, then no-op
+set_helper!(g::QueryNode, helper) = helper
