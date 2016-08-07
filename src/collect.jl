@@ -1,4 +1,5 @@
 function Base.collect(g::QueryNode)
+    # TODO: Informative error message?
     has_src(g) || error()
     return _collect(g)
 end
@@ -18,26 +19,23 @@ function _collect(tbl::AbstractTable, g::SelectNode)
 end
 
 function _collect(tbl::AbstractTable, g::FilterNode)
-    helper = g.helper
-    kernel, argfields = helper.parts[1]
-    indices = _filter_apply(kernel, tbl, argfields)
-    return _get_subset(tbl, indices)
+    f, arg_flds = parts(helper(g))[1]
+    new_tbl = rhs_filter(f, tbl, arg_flds)
+    return new_tbl
 end
 
 function _collect(tbl::AbstractTable, g::MutateNode)
     new_tbl = copy(tbl)
-    helper = g.helper
-    for (res_fld, kernel, arg_flds) in helper.parts
-        new_tbl[res_fld] = _mutate_apply(kernel, tbl, arg_flds)
+    for (res_fld, f, arg_flds) in parts(helper(g))
+        new_tbl[res_fld] = rhs_mutate(f, tbl, arg_flds)
     end
     return new_tbl
 end
 
 function _collect(tbl::AbstractTable, g::SummarizeNode)
     new_tbl = empty(tbl)
-    helper = g.helper
-    for (col_name, kernel, g, ind2sym) in helper.parts
-        new_tbl[col_name] = NullableArray([_summarize_apply(kernel, g, tbl, ind2sym)])
+    for (res_fld, f, g, ind2sym) in parts(helper(g))
+        new_tbl[res_fld] = rhs_summarize(f, g, tbl, ind2sym)
     end
     return new_tbl
 end

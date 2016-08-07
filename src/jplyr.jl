@@ -16,10 +16,12 @@ include("querynode.jl")
 include("query.jl")
 
 # AbstractTable utils
-include("abstracttable/01_expr.jl")
-include("abstracttable/02_fill.jl")
-include("abstracttable/03_apply.jl")
-include("abstracttable/04_make_funcs.jl")
+include("abstracttable/assignment_expr_ops.jl")
+include("abstracttable/sym_analysis.jl")
+
+# include("abstracttable/01_expr.jl")
+# include("abstracttable/02_fill.jl")
+# include("abstracttable/04_make_funcs.jl")
 
 # One-off interface
 include("select.jl")
@@ -27,6 +29,10 @@ include("filter.jl")
 include("groupby.jl")
 include("mutate.jl")
 include("summarize.jl")
+
+# Execution
 include("collect.jl")
+include("generic.jl")
+include("utils.jl")
 
 end # module
