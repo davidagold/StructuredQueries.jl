@@ -10,6 +10,16 @@ macro query(qry)
     end
 end
 
+macro qcollect(qry)
+    src, g = gen_graph(qry)
+    set_helpers!_ex = build_helper_exs(g)
+    return quote
+        $set_helpers!_ex
+        set_src!($g, $(esc(src[1])))
+        collect($g)
+    end
+end
+
 exf(ex) = ex.args[1]
 exfargs(ex) = ex.args[2:end]
 
@@ -65,7 +75,7 @@ end
 build_helper_exs!(g::DataNode, set_helpers!_ex) = set_helpers!_ex
 
 function build_helper_exs!(g::QueryNode, set_helpers!_ex)
-    helper_ex = _build_helper_ex(g)
+    helper_ex = build_helper_ex(g)
     push!(set_helpers!_ex.args,
           :( set_helper!($g, $helper_ex) )
     )

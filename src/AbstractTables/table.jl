@@ -141,7 +141,7 @@ Set `col` as the column respective to `fld` in `tbl`. Equivalent to
 
 Notes: `col` will not be coerced. `length(col)` must equal `nrow(tbl)`.
 """
-function Base.setindex!(tbl::Table, col, fld::Symbol)
+function Base.setindex!(tbl::Table, col::AbstractArray, fld::Symbol)
     nrows, ncols = nrow(tbl), ncol(tbl)
     if (ncols > 0) & (length(col) != nrows)
         msg = "All columns in a Table must be the same length"

@@ -3,12 +3,8 @@ using Reexport
 include("AbstractTables/AbstractTables.jl")
 @reexport using .AbstractTables
 
-export @query,
-    @filter,
-    @select,
-    @groupby,
-    @mutate,
-    @summarize
+export  @query,
+        @qcollect
     # following are exported only for test purposes
 
 # Graph interface
@@ -16,17 +12,18 @@ include("querynode.jl")
 include("query.jl")
 
 # AbstractTable utils
-include("abstracttable/01_expr.jl")
-include("abstracttable/02_fill.jl")
-include("abstracttable/03_apply.jl")
-include("abstracttable/04_make_funcs.jl")
+include("abstracttable/assignment_expr_ops.jl")
+include("abstracttable/sym_analysis.jl")
 
-# One-off interface
-include("select.jl")
-include("filter.jl")
-include("groupby.jl")
-include("mutate.jl")
-include("summarize.jl")
+# Generic graph execution
 include("collect.jl")
 
-end # module
+# Graph execution over AbstractTables
+include("abstracttable/collect.jl")
+include("abstracttable/generic.jl")
+include("abstracttable/utils.jl")
+include("abstracttable/select.jl")
+include("abstracttable/filter.jl")
+include("abstracttable/summarize.jl")
+
+end # module jplyr
