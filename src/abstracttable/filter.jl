@@ -1,24 +1,3 @@
-macro filter(input::Symbol, _args::Expr...)
-    args = collect(_args)
-    g = FilterNode(DataNode(), args)
-    helper_ex = build_helper_ex(g)
-    return quote
-        set_helper!($g, $helper_ex)
-        _collect($(esc(input)), $g)
-    end
-end
-
-# for case in which data source is piped to @filter
-macro filter(_args::Expr...)
-    args = collect(_args)
-    g = FilterNode(DataNode(), args)
-    helper_ex = build_helper_ex(g)
-    return quote
-        set_helper!($g, $helper_ex)
-        _collect(CurryNode(), $g)
-    end
-end
-
 ### Helper
 
 function build_helper_ex(g::FilterNode)

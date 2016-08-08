@@ -28,7 +28,8 @@ module TestQuery
         @test isequal(tbl2a, tbl2b)
     end
 
-    tbl2 = @select(tbl1, f = a * b)
+    f = [ a[i] * b[i] for i in eachindex(a) ]
+    tbl2 = Table(f = NullableArray(f))
     qrya = @query select(tbl1, f = a * b)
     qryb = @query tbl1 |> select(f = a * b)
     tbl2a = collect(qrya)
@@ -38,7 +39,12 @@ module TestQuery
     @test isequal(tbl2a, tbl2b)
 
     # test filter
-    tbl2 = @filter(tbl1, a > 2)
+    tbl2 = Table(
+        a = NullableArray([3]),
+        b = NullableArray([6]),
+        c = NullableArray(["c"]),
+        d = NullableArray([:c])
+    )
     qrya = @query filter(tbl1, a > 2)
     qryb = @query tbl1 |> filter(a > 2)
     tbl2a = collect(qrya)
@@ -48,7 +54,9 @@ module TestQuery
     @test isequal(tbl2a, tbl2b)
 
     # test summarize
-    tbl2 = @summarize(tbl1, b_avg = mean(b))
+    tbl2 = Table(
+        b_avg = NullableArray([mean([4, 5, 6])])
+    )
     qrya = @query summarize(tbl1, b_avg = mean(b))
     qryb = @query tbl1 |> summarize(b_avg = mean(b))
     tbl2a = collect(qrya)
@@ -58,7 +66,9 @@ module TestQuery
     @test isequal(tbl2a, tbl2b)
 
     # test combinations
-    tbl_fin = @filter(tbl1, a == 1) |> @select(b)
+    tbl2 = Table(
+        b = NullableArray([4])
+    )
     qrya = @query select(filter(tbl1, a == 1), b)
     qryb = @query tbl1 |>
         filter(a == 1) |>
@@ -66,6 +76,6 @@ module TestQuery
     tbl2a = collect(qrya)
     tbl2b = collect(qryb)
     @test isequal(tbl1, _tbl1)
-    @test isequal(tbl2a, tbl_fin)
+    @test isequal(tbl2a, tbl2)
     @test isequal(tbl2a, tbl2b)
 end

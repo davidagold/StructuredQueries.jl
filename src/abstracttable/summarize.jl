@@ -1,23 +1,3 @@
-macro summarize(tbl_name::Symbol, _exprs...)
-    exprs = collect(_exprs)
-    g = SummarizeNode(DataNode(), exprs)
-    helper_ex = build_helper_ex(g)
-    return quote
-        set_helper!($g, $helper_ex)
-        _collect($(esc(tbl_name)), $g)
-    end
-end
-
-macro summarize(_exprs...)
-    exprs = collect(_exprs)
-    g = SummarizeNode(DataNode(), exprs)
-    helper_ex = build_helper_ex(g)
-    return quote
-        set_helper!($g, $helper_ex)
-        _collect(CurryNode(), $g)
-    end
-end
-
 ### Helper
 
 function build_helper_ex(g::SummarizeNode)

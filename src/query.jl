@@ -10,6 +10,16 @@ macro query(qry)
     end
 end
 
+macro qcollect(qry)
+    src, g = gen_graph(qry)
+    set_helpers!_ex = build_helper_exs(g)
+    return quote
+        $set_helpers!_ex
+        set_src!($g, $(esc(src[1])))
+        collect($g)
+    end
+end
+
 exf(ex) = ex.args[1]
 exfargs(ex) = ex.args[2:end]
 

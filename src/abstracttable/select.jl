@@ -1,50 +1,3 @@
-#=
-NOTE: It is an open question how to differentiate b/w piped to and non-piped to
-@select calls. The issue is how to distinguish a symbol that represents a
-data source argument from a symbol that represents a column specification.
-The following is one way to do so. However, this strategy will fail/give
-incorrect results in cases such as the following:
-
-df |> @select(fieldname)
-
-where `df` and `fieldname` are both valid names bound to objects for which
-_collect(, g::QueryNode) methods exist
-=#
-macro select(_args...)
-    # prepare for case where data source belonds to _args
-    src, args_with_src = _args[1], collect(_args[2:end])
-    g_with_src = SelectNode(DataNode(), args_with_src)
-    helper_with_src_ex = build_helper_ex(g_with_src)
-
-    # prepare for case where data source doesn't belong to args (i.e., is piped)
-    args_without_src = collect(_args)
-    g_without_src = SelectNode(DataNode(), args_without_src)
-    helper_without_src_ex = build_helper_ex(g_without_src)
-
-    quoted_src = QuoteNode(src)
-    return quote
-        try # assume first that first arg is data input
-            # g = SelectNode(DataNode($(esc(input))), collect($cols))
-            set_helper!($g_with_src, $helper_with_src_ex)
-            _collect($(esc(src)), $g_with_src)
-        catch err
-            # if error because first arg isn't valid name, or if first arg is a
-            # valid name but isn't of a supported data source type, assume it is
-            # a column specification
-            if err == UndefVarError($quoted_src) ||
-            (isa(err, MethodError) && err.f == jplyr._collect)
-                set_helper!($g_without_src, $helper_without_src_ex)
-                # g = SelectNode(DataNode(), collect($args))
-                _collect(CurryNode(), $g_without_src)
-            # Otherwise, throw the error
-            else
-                throw(err)
-            end
-        end
-    end
-end
-
-
 ### Helper
 
 function build_helper_ex(g::SelectNode)
@@ -56,7 +9,7 @@ function build_helper_ex(g::SelectNode)
 end
 
 """
-    `_build_helper_parts(g::SelectNode)`
+    `build_helper_parts(g::SelectNode)`
 
 Returns a vector of `Expr` objects of the form
 
