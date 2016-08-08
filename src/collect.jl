@@ -12,8 +12,9 @@ _collect(::CurryNode, g::QueryNode) = x -> _collect(x, g)
 
 function _collect(tbl::AbstractTable, g::SelectNode)
     new_tbl = empty(tbl)
-    for fld in g.args
-        new_tbl[fld] = copy(tbl[fld])
+    for (res_fld, f, arg_flds) in parts(helper(g))
+        # new_tbl[fld] = copy(tbl[fld])
+        new_tbl[res_fld] = rhs_select(f, tbl, arg_flds)
     end
     return new_tbl
 end

@@ -1,7 +1,7 @@
 macro summarize(tbl_name::Symbol, _exprs...)
     exprs = collect(_exprs)
     g = SummarizeNode(DataNode(), exprs)
-    helper_ex = _build_helper_ex(g)
+    helper_ex = build_helper_ex(g)
     return quote
         set_helper!($g, $helper_ex)
         _collect($(esc(tbl_name)), $g)
@@ -11,7 +11,7 @@ end
 macro summarize(_exprs...)
     exprs = collect(_exprs)
     g = SummarizeNode(DataNode(), exprs)
-    helper_ex = _build_helper_ex(g)
+    helper_ex = build_helper_ex(g)
     return quote
         set_helper!($g, $helper_ex)
         _collect(CurryNode(), $g)
@@ -20,15 +20,15 @@ end
 
 ### Helper
 
-function _build_helper_ex(g::SummarizeNode)
+function build_helper_ex(g::SummarizeNode)
     check_node(g)
-    helper_parts_ex = Expr(:ref, :Tuple, _build_helper_parts(g)...)
+    helper_parts_ex = Expr(:ref, :Tuple, build_helper_parts(g)...)
     return quote
         Helper{SummarizeNode}($helper_parts_ex)
     end
 end
 
-function _build_helper_parts(g::SummarizeNode)
+function build_helper_parts(g::SummarizeNode)
     helper_parts_exs = Vector{Expr}()
     for e in g.args
         res_fld = QuoteNode(get_res_field(e))

@@ -1,5 +1,5 @@
 #=
-OPEN QUESTION: How to differentiate b/w piped to and non-piped to
+NOTE: It is an open question how to differentiate b/w piped to and non-piped to
 @select calls. The issue is how to distinguish a symbol that represents a
 data source argument from a symbol that represents a column specification.
 The following is one way to do so. However, this strategy will fail/give
@@ -7,27 +7,36 @@ incorrect results in cases such as the following:
 
 df |> @select(fieldname)
 
-where `df` and `fieldname` are both valid names bound to DataFrame objects.
+where `df` and `fieldname` are both valid names bound to objects for which
+_collect(, g::QueryNode) methods exist
 =#
-macro select(args...)
-    input, cols = args[1], args[2:end]
-    _input = QuoteNode(input)
+macro select(_args...)
+    # prepare for case where data source belonds to _args
+    src, args_with_src = _args[1], collect(_args[2:end])
+    g_with_src = SelectNode(DataNode(), args_with_src)
+    helper_with_src_ex = build_helper_ex(g_with_src)
+
+    # prepare for case where data source doesn't belong to args (i.e., is piped)
+    args_without_src = collect(_args)
+    g_without_src = SelectNode(DataNode(), args_without_src)
+    helper_without_src_ex = build_helper_ex(g_without_src)
+
+    quoted_src = QuoteNode(src)
     return quote
         try # assume first that first arg is data input
-            g = SelectNode(DataNode($(esc(input))), collect($cols))
-            _collect(g)
+            # g = SelectNode(DataNode($(esc(input))), collect($cols))
+            set_helper!($g_with_src, $helper_with_src_ex)
+            _collect($(esc(src)), $g_with_src)
         catch err
-            #= if error because first arg isn't valid name, assume it is a
-            column specification and return curried collect. Otherwise, throw
-            the error =#
-            if err == UndefVarError($_input)
-                g = SelectNode(DataNode(), collect($args))
-                _collect(CurryNode(), g)
-            elseif isa(err, MethodError)
-                if err.f == jplyr._collect
-                    g = SelectNode(DataNode(), collect($args))
-                    _collect(CurryNode(), g)
-                end
+            # if error because first arg isn't valid name, or if first arg is a
+            # valid name but isn't of a supported data source type, assume it is
+            # a column specification
+            if err == UndefVarError($quoted_src) ||
+            (isa(err, MethodError) && err.f == jplyr._collect)
+                set_helper!($g_without_src, $helper_without_src_ex)
+                # g = SelectNode(DataNode(), collect($args))
+                _collect(CurryNode(), $g_without_src)
+            # Otherwise, throw the error
             else
                 throw(err)
             end
@@ -35,4 +44,99 @@ macro select(args...)
     end
 end
 
-_build_helper_ex(g::SelectNode) = :()
+
+### Helper
+
+function build_helper_ex(g::SelectNode)
+    # TODO: check_node(g)
+    helper_parts_ex = Expr(:ref, :Tuple, build_helper_parts(g)...)
+    return quote
+        Helper{SelectNode}($helper_parts_ex)
+    end
+end
+
+"""
+    `_build_helper_parts(g::SelectNode)`
+
+Returns a vector of `Expr` objects of the form
+
+`:( (res_field, f, arg_fields) )`
+
+one such `Expr` for each column selection/transformation specified in
+`@select(tbl, ...)`.
+"""
+function build_helper_parts(g::SelectNode)
+    helper_parts_exs = Vector{Expr}()
+    for e in g.args
+        # case in which arg is a column specification
+        if isa(e, Symbol)
+            res_field = QuoteNode(e)
+            push!(helper_parts_exs,
+                  :( ($res_field, Base.identity, [$res_field]) )
+            )
+        # case in which arg is a transformation
+        elseif isa(e, Expr)
+            res_field = QuoteNode(get_res_field(e))
+            core_expr = get_value_expr(e)
+            kernel_expr, arg_fields = build_kernel_ex(core_expr)
+            push!(helper_parts_exs,
+                  # Helper{MutateNode} part
+                #   Expr(:tuple, res_field, anon_func_expr, esc(ind2sym))
+                  :( ($res_field, $kernel_expr, $(esc(arg_fields))) )
+            )
+        end
+    end
+    return helper_parts_exs
+end
+
+### RHS
+
+rhs_select(::typeof(Base.identity), tbl, arg_fields) = tbl[arg_fields[1]]
+function rhs_select(f, tbl, arg_fields)
+    # Pre-process table in terms of kernel and argument column names
+    T, row_itr = _preprocess(f, tbl, arg_fields)
+
+    # Pre-allocate the table's new column.
+    n = length(tbl[arg_fields[1]])
+    output = NullableArray(T, n)
+
+    # Fill the new column in row-by-row.
+    # @code_warntype _fill_output!(output, f, row_itr)
+    apply_transformation!(output, f, row_itr)
+
+    # Return the output
+    return output
+end
+
+"""
+Given a tuple-to-scalar function that should be used to generate the output of
+a `@mutate` operation, iterate over the elements of a tuple iterator to
+produce the individual scalar values generated by the tuple-to-scalar function.
+Store each of these values in the passed-in NullableVector.
+
+Note that this function automatically applies the "natural" lifting semantics,
+in which an expression over nullables produces a null value if any of the
+inputs are null-valued. Another function will need to written to handle the
+more complicated case in which only some sub-expressions are lifted and others
+must be evaluated using custom lifting semantics.
+
+* TODO: Parallelize this when threading is available in Base Julia.
+* TODO: See if using `@inbounds` improves performance.
+"""
+@noinline function apply_transformation!(
+    output::NullableVector,
+    f::Any,
+    tuple_iterator::Any,
+)::Void
+    # Iterate over all of the rows of the tuple iterator.
+    for (i, tpl) in enumerate(tuple_iterator)
+        # Apply default lifting semantics by branching on hasnull(tpl).
+        if hasnulls(tpl)
+            output.isnull[i] = true
+        else
+            output.isnull[i] = false
+            output.values[i] = f(map(unwrap, tpl))
+        end
+    end
+    return
+end

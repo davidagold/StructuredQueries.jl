@@ -35,6 +35,14 @@ type Helper{T} <: QueryHelper
     parts::Vector{Tuple}
 end
 
+type SelectNode <: QueryNode
+    input::QueryNode
+    args::Vector{QueryArg}
+    helper::Helper{SelectNode}
+
+    (::Type{SelectNode})(input, args) = new(input, args)
+end
+
 """
 Represent a filter operation in a manipulation graph.
 
@@ -51,12 +59,7 @@ type FilterNode <: QueryNode
     args::Vector{Expr}
     helper::Helper{FilterNode}
 
-    FilterNode(input, conds) = new(input, conds)
-end
-
-type SelectNode <: QueryNode
-    input::QueryNode
-    args::Vector{QueryArg}
+    (::Type{FilterNode})(input, args) = new(input, args)
 end
 
 type GroupbyNode <: QueryNode
@@ -88,7 +91,7 @@ end
 
 immutable CurryNode end
 
-for T in (:FilterNode, :MutateNode, :SummarizeNode)
+for T in (:SelectNode, :FilterNode, :SummarizeNode)
     @eval function (::Type{$T})(input, conds, helper)
         res = $T(input, conds)
         set_helper!(res, helper)
@@ -101,7 +104,7 @@ has_src(g::DataNode) = isdefined(g, :input)
 set_src!(g::QueryNode, data) = set_src!(g.input, data)
 set_src!(g::DataNode, data) = (g.input = data; data)
 
-typealias NeedsHelper Union{FilterNode, MutateNode, SummarizeNode}
+typealias NeedsHelper Union{SelectNode, FilterNode, SummarizeNode}
 
 has_helper(g::NeedsHelper) = isdefined(g, :helper)
 # Diagonal dispatch buys us some safety

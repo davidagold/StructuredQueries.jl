@@ -1,7 +1,7 @@
 macro filter(input::Symbol, _args::Expr...)
     args = collect(_args)
     g = FilterNode(DataNode(), args)
-    helper_ex = _build_helper_ex(g)
+    helper_ex = build_helper_ex(g)
     return quote
         set_helper!($g, $helper_ex)
         _collect($(esc(input)), $g)
@@ -12,7 +12,7 @@ end
 macro filter(_args::Expr...)
     args = collect(_args)
     g = FilterNode(DataNode(), args)
-    helper_ex = _build_helper_ex(g)
+    helper_ex = build_helper_ex(g)
     return quote
         set_helper!($g, $helper_ex)
         _collect(CurryNode(), $g)
@@ -21,12 +21,12 @@ end
 
 ### Helper
 
-function _build_helper_ex(g::FilterNode)
-    kernel_ex, flds = _build_helper_parts(g)
+function build_helper_ex(g::FilterNode)
+    kernel_ex, flds = build_helper_parts(g)
     return :( Helper{FilterNode}([($kernel_ex, $flds)]) )
 end
 
-function _build_helper_parts(g::FilterNode)
+function build_helper_parts(g::FilterNode)
     filter_pred = aggregate(g.args)
     kernel_ex, arg_flds = build_kernel_ex(filter_pred)
 end

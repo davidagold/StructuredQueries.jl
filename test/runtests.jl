@@ -5,7 +5,6 @@ anyerrors = false
 my_tests = (
     "select.jl",
     "filter.jl",
-    "mutate.jl",
     "summarize.jl",
     "query.jl"
 )

@@ -65,7 +65,7 @@ end
 build_helper_exs!(g::DataNode, set_helpers!_ex) = set_helpers!_ex
 
 function build_helper_exs!(g::QueryNode, set_helpers!_ex)
-    helper_ex = _build_helper_ex(g)
+    helper_ex = build_helper_ex(g)
     push!(set_helpers!_ex.args,
           :( set_helper!($g, $helper_ex) )
     )
