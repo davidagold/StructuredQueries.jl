@@ -4,40 +4,40 @@ A tabular data type.
 Fields:
 
 * `index::Dict{Symbol, Int}`: A mapping from symbols to numeric column indices
-* `columns::Vector{Any}`: A vector of iterable column objects
+* `columns::Vector{NullableVector}`: A vector of NullableVector columns
 * `fields::Vector{Symbol}`: A vector of fields (column names)
-* `allowsnulls::Vector{Bool}`: A vector of flags indicating whether the
-respective column allows storage of null values
+<!-- * `allowsnulls::Vector{Bool}`: A vector of flags indicating whether the
+respective column allows storage of null values -->
 * `hasnulls::Vector{Bool}`: A vector of flags indicating whether the
 respective column currently stores any null values
 
 Notes: The ordering of the columns in `columns` respects that of the numeric
 indices given by `index`.
 
-If `allowsnulls[i] == false` then `hasnulls[i]` must also `== false`.
+<!-- If `allowsnulls[i] == false` then `hasnulls[i]` must also `== false`.
 
 Columns are assumed to be either `Array` or `NullableArray` objects. If
-`isa(columns[i], Array)` then `allowsnulls[i] == false`.
+`isa(columns[i], Array)` then `allowsnulls[i] == false`. -->
 
 The types of columns are not coerced upon `Table` initialization.
 """
 type Table <: AbstractTable
     index::Dict{Symbol, Int}
-    columns::Vector{Any}
+    columns::Vector{NullableVector}
     fields::Vector{Symbol}
-    allowsnulls::Vector{Bool}
+    # allowsnulls::Vector{Bool}
     hasnulls::Vector{Bool}
 
     function Table(index, columns)
         ncols = length(columns)
-        allowsnulls = Vector{Bool}(ncols)
+        # allowsnulls = Vector{Bool}(ncols)
         hasnulls = Vector{Bool}(ncols)
         if ncols > 1
             nrows = length(columns[1])
             equallengths = true
             for (j, col) in enumerate(columns)
                 equallengths &= length(col) == nrows
-                allowsnulls[j] = _allowsnulls(col)
+                # allowsnulls[j] = _allowsnulls(col)
                 hasnulls[j] = _hasnulls(col)
             end
             if !equallengths
@@ -50,19 +50,17 @@ type Table <: AbstractTable
             fields[idx[key]] = key
         end
         length(index) == length(columns) || error()
-        new(index, columns, fields, allowsnulls, hasnulls)
+        new(index, columns, fields, hasnulls)
     end
 end
-
-# (::Type{Table})() = Table(Dict{Symbol, Int}(), Any[])
 
 """
 Initialize an empty `Table`.
 """
 empty(tbl::Table) = Table()
 
-_allowsnulls(A::Array) = false
-_allowsnulls(A::AbstractArray) = true
+# _allowsnulls(A::Array) = false
+# _allowsnulls(A::AbstractArray) = true
 _hasnulls(A::Array) = false
 _hasnulls(A::AbstractArray) = anynull(A)
 
@@ -151,13 +149,13 @@ function Base.setindex!(tbl::Table, col::AbstractArray, fld::Symbol)
     cols = columns(tbl)
     flds = fields(tbl)
     if j <= ncols
-        cols[j] = col
-        tbl.allowsnulls[j] = _allowsnulls(col)
+        cols[j] = convert(NullableArray, col)
+        # tbl.allowsnulls[j] = _allowsnulls(col)
         tbl.hasnulls[j] = _hasnulls(col)
     else
-        push!(cols, col)
+        push!(cols, convert(NullableArray, col))
         push!(flds, fld)
-        push!(tbl.allowsnulls, _allowsnulls(col))
+        # push!(tbl.allowsnulls, _allowsnulls(col))
         push!(tbl.hasnulls, _hasnulls(col))
     end
     return col
@@ -187,8 +185,6 @@ immutable TableRowIterator{T}
     cols::T
 end
 
-# (::Type{TableRowIterator})(col_tup) =
-
 Base.start(itr::TableRowIterator) = 1
 @generated function Base.next{T}(itr::TableRowIterator{T}, st)
     ncols = length(fieldnames(T))
@@ -209,4 +205,28 @@ eachrow(tbl::Table) = TableRowIterator(tuple(columns(tbl)...))
 function eachrow(tbl::Table, flds...)
     cols = [ tbl[fld] for fld in flds ]
     TableRowIterator(tuple(cols...))
+end
+
+# Other
+
+function Base.isequal(tbl1::Table, tbl2::Table)
+    isequal(ncol(tbl1), ncol(tbl2)) || return false
+    # isequal(tbl1.allowsnulls, tbl2.allowsnulls) || return false
+    isequal(tbl1.hasnulls, tbl2.hasnulls) || return false
+    for ((fld1, col1), (fld2, col2)) in zip(eachcol(tbl1), eachcol(tbl2))
+        isequal(fld1, fld2) || return false
+        isequal(col1, col2) || return false
+    end
+    return true
+end
+
+function Base.hash(tbl::Table)
+    # h = hash(tbl.allowsnulls) + 1
+    h = hash(tbl.hasnulls) + 1
+    for (i, (fld, col)) in enumerate(eachcol(tbl))
+        h = hash(i, h)
+        h = hash(fld, h)
+        h = hash(tbl[fld], h)
+    end
+    return @compat UInt(h)
 end

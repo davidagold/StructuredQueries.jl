@@ -118,27 +118,3 @@ function index(tbl::AbstractTable)
 end
 
 Base.getindex(tbl::AbstractTable, fld::Symbol) = columns(tbl)[index(tbl)[fld]]
-
-# Other
-
-function Base.isequal(tbl1::AbstractTable, tbl2::AbstractTable)
-    isequal(ncol(tbl1), ncol(tbl2)) || return false
-    isequal(tbl1.allowsnulls, tbl2.allowsnulls) || return false
-    isequal(tbl1.hasnulls, tbl2.hasnulls) || return false
-    for ((fld1, col1), (fld2, col2)) in zip(eachcol(tbl1), eachcol(tbl2))
-        isequal(fld1, fld2) || return false
-        isequal(col1, col2) || return false
-    end
-    return true
-end
-
-function Base.hash(tbl::AbstractTable)
-    h = hash(tbl.allowsnulls) + 1
-    h = hash(tbl.hasnulls) + 1
-    for (i, (fld, col)) in enumerate(eachcol(tbl))
-        h = hash(i, h)
-        h = hash(fld, h)
-        h = hash(tbl[fld], h)
-    end
-    return @compat UInt(h)
-end
