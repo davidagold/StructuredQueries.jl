@@ -15,7 +15,7 @@ julia> Pkg.clone("https://github.com/davidagold/jplyr.jl.git")
 
 `jplyr` data manipulation facilities are currently being developed against an internal `Table` type and `AbstractTable` interface. It should be straightforward to extend these facilities to `DataFrame`s, once certain design decisions concerning the latter have been settled.
 
-We defer a precise specification of the features this package provides until a later time at which they are less in flux. The examples of the following sections should give the reader a sense of what sort of functionality to expect.
+We defer a precise specification of the features this package provides until a time at which they are less in flux. The examples of the following sections should give the reader a sense of what sort of functionality to expect.
 
 ### `@query`
 
@@ -106,11 +106,11 @@ jplyr.AbstractTables.Table
 
 ## Implementation details
 
-These are in constant flux. We refer the interested reader to the [source code](https://github.com/davidagold/jplyr.jl/tree/master/src). 
+These are in constant flux. We refer the interested reader to the [source code](https://github.com/davidagold/jplyr.jl/tree/master/src).
 
 ## Extensibility
 
-One of the goals of this package is to create a data manipulation interface that is extensible. The user-facing query interface (which produces a manipulation graph) is separate from the graph execution interface. In practice, this requires familiarizing oneself with the information stored in each different `QueryNode` leaf subtype and leveraging it in the appropriately defined `_collect` method. In the following example we show how `_collect` may be overloaded to query vectors of simple structs:
+One of the goals of this package is to create a data manipulation interface that is extensible. The user-facing query interface (which produces a manipulation graph) is separate from the graph execution interface. This means that one can immediately use the query interface to produce query graphs whose base `DataNode` wraps objects of arbitrary type `T`. The real work involves extending the execution interface to handle execution of each `QueryNode` leaf subtype against data sources of type `T`. In practice, this requires familiarizing oneself with the information stored in each such `QueryNode` subtype and leveraging it in the appropriately defined `_collect` method. In the following example we show how `_collect` may be overloaded to query vectors of simple structs:
 ```julia
 julia> abstract Thing
 

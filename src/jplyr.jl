@@ -12,8 +12,8 @@ include("querynode.jl")
 include("query.jl")
 
 # AbstractTable utils
-include("abstracttable/assignment_expr_ops.jl")
-include("abstracttable/sym_analysis.jl")
+include("abstracttable/expr/assignment_expr_ops.jl")
+include("abstracttable/expr/sym_analysis.jl")
 
 # Generic graph execution
 include("collect.jl")
