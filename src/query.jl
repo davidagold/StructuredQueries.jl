@@ -28,7 +28,6 @@ const manip_types = Dict{Symbol, DataType}(
     :select => SelectNode,
     :groupby => GroupbyNode,
     :orderby => OrderbyNode,
-    :mutate => MutateNode,
     :summarize => SummarizeNode,
     :summarise => SummarizeNode
 )

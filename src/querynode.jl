@@ -72,14 +72,6 @@ type OrderbyNode <: QueryNode
     args::Vector{QueryArg}
 end
 
-type MutateNode <: QueryNode
-    input::QueryNode
-    args::Vector{QueryArg}
-    helper::Helper{MutateNode}
-
-    (::Type{MutateNode})(input, args) = new(input, args)
-end
-
 # TODO: think about what sort of information would be useful to store in `args`.
 type SummarizeNode <: QueryNode
     input::QueryNode
