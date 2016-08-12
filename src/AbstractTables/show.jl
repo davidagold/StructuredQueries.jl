@@ -27,7 +27,7 @@ ourshowcompact(io::IO, x::Any) = showcompact(io, x) # -> Void
 ourshowcompact(io::IO, x::AbstractString) = showcompact(io, x) # -> Void
 ourshowcompact(io::IO, x::Symbol) = print(io, x) # -> Void
 
-function getmaxwidths(tbl::AbstractTable, rowlabel, rowlimit)
+function getmaxwidths(tbl::AbstractTable, rowlabel, limit, offset)
     ncols = ncol(tbl)
     widths = [ Vector{Int}() for j in 1:ncols ]
     maxwidths = Array{Int}(ncol(tbl) + 1)
@@ -36,7 +36,11 @@ function getmaxwidths(tbl::AbstractTable, rowlabel, rowlimit)
     rows = eachrow(tbl)
     st = start(rows)
     i = 1
-    while (i <= rowlimit) & (!done(rows, st))
+    while (i <= offset) & (!done(rows, st))
+        row, st = next(rows, st)
+        i += 1
+    end
+    while (i <= offset + limit) & (!done(rows, st))
         row, st = next(rows, st)
         for (j, v) in enumerate(row)
             try
@@ -49,9 +53,13 @@ function getmaxwidths(tbl::AbstractTable, rowlabel, rowlimit)
     end
     flds = fields(tbl)
     for j in 1:ncols
-        maxwidths[j] = max(maximum(widths[j]), (ourstrwidth(flds[j])))
+        if isempty(widths[j])
+            maxwidths[j] = ourstrwidth(flds[j])
+        else
+            maxwidths[j] = max(maximum(widths[j]), ourstrwidth(flds[j]))
+        end
     end
-    maxwidths[end] = max(ourstrwidth(rowlabel), ndigits(rowlimit)+1)
+    maxwidths[end] = max(ourstrwidth(rowlabel), ndigits(limit)+1)
     return maxwidths
 end
 
@@ -91,13 +99,17 @@ function print_bounding_line(io, maxwidths, rightmost)
     write(io, '\n')
 end
 
-function show_tbl_rows(io::IO, tbl, maxwidths, rightmost, rowlabel, rowlimit)
+function show_tbl_rows(io::IO, tbl, maxwidths, rightmost, rowlabel, limit, offset)
     rowmaxwidth = maxwidths[end]
     flds = fields(tbl)
     rows = eachrow(tbl, flds[1:rightmost]...)
     st = start(rows)
     i = 1
-    while (i <= rowlimit) & (!done(rows, st))
+    while (i <= offset) & (!done(rows, st))
+        row, st = next(rows, st)
+        i += 1
+    end
+    while (i <= offset + limit) & (!done(rows, st))
         row, st = next(rows, st)
         @printf(io, "│ %d", i)
         pad(io, rowmaxwidth - ndigits(i))
@@ -109,7 +121,7 @@ function show_tbl_rows(io::IO, tbl, maxwidths, rightmost, rowlabel, rowlimit)
             ourshowcompact(io, v)
             pad(io, maxwidths[j] - strlen)
             if j == rightmost
-                if i == rowlimit
+                if i == (limit+offset)
                     print(io, " │")
                 else
                     print(io, " │\n")
@@ -120,20 +132,27 @@ function show_tbl_rows(io::IO, tbl, maxwidths, rightmost, rowlabel, rowlimit)
         end
         i += 1
     end
-    if (i > rowlimit) & (!done(rows, st))
-        print_row_footer(io, tbl, tblrowdim(tbl), rowlimit)
+    if (i > (limit+offset)) & (!done(rows, st))
+        print_row_footer(io, tbl, tblrowdim(tbl), limit, offset)
     end
     return
 end
 
-function print_row_footer(io, tbl::AbstractTable, ::RowDimUnknown, rowlimit)
+function print_row_footer(io, tbl::AbstractTable, ::RowDimUnknown, limit, offset)
     println(io, "\n⋮")
     print(io, "with more rows.")
 end
 
-function print_row_footer(io, tbl::AbstractTable, ::HasRowDim, rowlimit)
+function print_row_footer(io, tbl::AbstractTable, ::HasRowDim, limit, offset)
     println(io, "\n⋮")
-    @printf(io, "with %d more rows.", nrow(tbl)-rowlimit)
+    if offset > 0
+        @printf(io, "with %d more rows (skipped the first %d rows).",
+                nrow(tbl)-(limit+offset),
+                offset
+        )
+    else
+        @printf(io, "with %d more rows.", nrow(tbl)-limit)
+    end
 end
 
 function show_tbl_header(io, tbl, maxwidths, rightmost, rowlabel)
@@ -167,13 +186,13 @@ function rightbound(io, maxwidths)
     return rightmost
 end
 
-function show_tbl(io, tbl, rowlabel, displaysummary, rowlimit)
+function show_tbl(io, tbl, rowlabel, displaysummary, limit, offset)
     if ncol(tbl) > 0
         displaysummary && println(io, summary(tbl))
-        maxwidths = getmaxwidths(tbl, rowlabel, rowlimit)
+        maxwidths = getmaxwidths(tbl, rowlabel, limit, offset)
         rightmost = rightbound(io, maxwidths)
         show_tbl_header(io, tbl, maxwidths, rightmost, rowlabel)
-        show_tbl_rows(io, tbl, maxwidths, rightmost, rowlabel, rowlimit)
+        show_tbl_rows(io, tbl, maxwidths, rightmost, rowlabel, limit, offset)
     else
         @printf(io, "An empty %s", typeof(tbl))
     end
@@ -184,6 +203,8 @@ end
 printedwidth(maxwidths) = foldl((x,y)->x+y+3, 1, maxwidths)
 
 function Base.show(io::IO, tbl::AbstractTable, rowlabel = :Row,
-                   displaysummary = true, rowlimit = 10)
-    show_tbl(io, tbl, rowlabel, displaysummary, rowlimit)
+                   displaysummary = true, limit = 10, offset = 0)
+    show_tbl(io, tbl, rowlabel, displaysummary, limit, offset)
 end
+
+Base.show(tbl, limit, offset) = show(STDOUT, tbl, :Row, true, limit, offset)
