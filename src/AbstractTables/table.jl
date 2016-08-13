@@ -20,6 +20,9 @@ Columns are assumed to be either `Array` or `NullableArray` objects. If
 `isa(columns[i], Array)` then `allowsnulls[i] == false`. -->
 
 The types of columns are not coerced upon `Table` initialization.
+
+`'.'` is not a valid character within a field. All instances of `'.'` will be
+replaced by `'_'` upon constructing a `Table` or setting a column.
 """
 type Table <: AbstractTable
     index::Dict{Symbol, Int}
@@ -47,12 +50,15 @@ type Table <: AbstractTable
         end
         fields = Array{Symbol}(ncols)
         for key in keys(index)
-            fields[idx[key]] = key
+            key = Symbol(replace_dots(string(key)))
+            fields[index[key]] = key
         end
         length(index) == length(columns) || error()
         new(index, columns, fields, hasnulls)
     end
 end
+
+replace_dots(field) = searchindex(field, ".") > 0 ? replace(field, ".", "_") : field
 
 """
 Initialize an empty `Table`.
@@ -139,13 +145,14 @@ Set `col` as the column respective to `fld` in `tbl`. Equivalent to
 
 Notes: `col` will not be coerced. `length(col)` must equal `nrow(tbl)`.
 """
-function Base.setindex!(tbl::Table, col::AbstractArray, fld::Symbol)
+function Base.setindex!(tbl::Table, col::AbstractArray, field::Symbol)
+    field = Symbol(replace_dots(string(field)))
     nrows, ncols = nrow(tbl), ncol(tbl)
     if (ncols > 0) & (length(col) != nrows)
         msg = "All columns in a Table must be the same length"
         throw(ArgumentError(msg))
     end
-    j = get!(()->ncols+1, index(tbl), fld)
+    j = get!(()->ncols+1, index(tbl), field)
     cols = columns(tbl)
     flds = fields(tbl)
     if j <= ncols
@@ -154,7 +161,7 @@ function Base.setindex!(tbl::Table, col::AbstractArray, fld::Symbol)
         tbl.hasnulls[j] = _hasnulls(col)
     else
         push!(cols, convert(NullableArray, col))
-        push!(flds, fld)
+        push!(flds, field)
         # push!(tbl.allowsnulls, _allowsnulls(col))
         push!(tbl.hasnulls, _hasnulls(col))
     end
