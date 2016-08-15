@@ -128,7 +128,7 @@ fields(tbl::Table) = tbl.fields
 
 Obtain the number of rows contained in `tbl`.
 """
-nrow(tbl::Table) = ncol(tbl) > 0 ? length(columns(tbl)[1]) : 0
+AbstractTables.nrow(tbl::Table) = ncol(tbl) > 0 ? length(columns(tbl)[1]) : 0
 
 """
     `getindex(tbl::Table, fld::Symbol)`
@@ -208,8 +208,8 @@ function Base.done(itr::TableRowIterator, st)
     st > lim
 end
 
-eachrow(tbl::Table) = TableRowIterator(tuple(columns(tbl)...))
-function eachrow(tbl::Table, flds...)
+AbstractTables.eachrow(tbl::Table) = TableRowIterator(tuple(columns(tbl)...))
+function AbstractTables.eachrow(tbl::Table, flds...)
     cols = [ tbl[fld] for fld in flds ]
     TableRowIterator(tuple(cols...))
 end
