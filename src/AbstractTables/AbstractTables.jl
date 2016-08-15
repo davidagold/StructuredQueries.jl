@@ -15,10 +15,13 @@ module AbstractTables
     include("show.jl")
 
     export  Table,
+            GroupedTable,
             index,
             fields,
             columns,
             empty
 
     include("table/table.jl")
+    include("table/grouped_table/grouped_table.jl")
+    include("table/grouped_table/show.jl")
 end

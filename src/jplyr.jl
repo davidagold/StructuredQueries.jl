@@ -1,4 +1,5 @@
 module jplyr
+
 using Reexport
 include("AbstractTables/AbstractTables.jl")
 @reexport using .AbstractTables
@@ -24,6 +25,7 @@ include("abstracttable/generic.jl")
 include("abstracttable/utils.jl")
 include("abstracttable/select.jl")
 include("abstracttable/filter.jl")
+include("abstracttable/groupby.jl")
 include("abstracttable/summarize.jl")
 
 end # module jplyr

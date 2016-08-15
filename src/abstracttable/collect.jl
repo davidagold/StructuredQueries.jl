@@ -19,3 +19,8 @@ function _collect(tbl::AbstractTable, g::SummarizeNode)
     end
     return new_tbl
 end
+
+function _collect(tbl::AbstractTable, g::GroupbyNode)
+    group_indices = _indices(tbl, g)
+    return GroupedTable(tbl, group_indices, g.args)
+end
