@@ -65,11 +65,17 @@ end
 type GroupbyNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
+    helper::Helper{GroupbyNode}
+
+    (::Type{GroupbyNode})(input, args) = new(input, args)
 end
 
 type OrderbyNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
+    helper::Helper{OrderbyNode}
+
+    (::Type{OrderbyNode})(input, args) = new(input, args)
 end
 
 # TODO: think about what sort of information would be useful to store in `args`.
@@ -83,7 +89,7 @@ end
 
 immutable CurryNode end
 
-for T in (:SelectNode, :FilterNode, :SummarizeNode)
+for T in (:SelectNode, :FilterNode, :GroupbyNode, :OrderbyNode, :SummarizeNode)
     @eval function (::Type{$T})(input, conds, helper)
         res = $T(input, conds)
         set_helper!(res, helper)
@@ -96,7 +102,14 @@ has_src(g::DataNode) = isdefined(g, :input)
 set_src!(g::QueryNode, data) = set_src!(g.input, data)
 set_src!(g::DataNode, data) = (g.input = data; data)
 
-typealias NeedsHelper Union{SelectNode, FilterNode, SummarizeNode}
+typealias   NeedsHelper
+            Union{
+                SelectNode,
+                FilterNode,
+                GroupbyNode,
+                OrderbyNode,
+                SummarizeNode
+            }
 
 has_helper(g::NeedsHelper) = isdefined(g, :helper)
 # Diagonal dispatch buys us some safety
@@ -104,8 +117,11 @@ function set_helper!{T<:NeedsHelper}(g::T, helper::Helper{T})
     g.helper = helper
     return helper
 end
-# if a QueryNode doesn't need a helper, then no-op
-set_helper!(g::QueryNode, helper) = helper
+set_helper!(g::QueryNode, helper) =
+    throw(ArgumentError("$(typeof(g)) doesn't need helper."))
 
 helper(g::NeedsHelper) = g.helper
 parts(h::QueryHelper) = h.parts
+
+helper_parts(g::Union{FilterNode}) = parts(helper(g))[1]
+helper_parts(g::NeedsHelper) = parts(helper(g))

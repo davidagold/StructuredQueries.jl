@@ -8,6 +8,8 @@ function build_helper_ex(g::SelectNode)
     end
 end
 
+immutable SelectStar end
+
 """
     `build_helper_parts(g::SelectNode)`
 
@@ -21,8 +23,14 @@ one such `Expr` for each column selection/transformation specified in
 function build_helper_parts(g::SelectNode)
     helper_parts_exs = Vector{Expr}()
     for e in g.args
+        # case in which arg is a SELECT *
+        if e == :*
+            push!(
+                helper_parts_exs,
+                :( (SelectStar(), SelectStar(), SelectStar()) )
+            )
         # case in which arg is a column specification
-        if isa(e, Symbol)
+        elseif isa(e, Symbol)
             res_field = QuoteNode(e)
             push!(helper_parts_exs,
                   :( ($res_field, Base.identity, [$res_field]) )
