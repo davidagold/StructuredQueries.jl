@@ -11,68 +11,46 @@ end
 function build_helper_parts(g::GroupbyNode)
     helper_parts_exs = Vector{Expr}()
     for e in g.args
+        is_predicate = isa(e, Expr) ? true : false
         kernel_expr, arg_fields = build_kernel_ex(e)
         push!(
             helper_parts_exs,
-            :( ($kernel_expr, $arg_fields) )
+            :( ($is_predicate, $kernel_expr, $arg_fields) )
         )
     end
     return helper_parts_exs
 end
 
-"""
-"""
-@noinline function _indices(tbl, g::GroupbyNode)
-    # Extract the columns from the table and create a tuple iterator.
-    helpers = helper_parts(g)
-    N = length(helpers)
-    f_itr_pairs = Any[]
-    for (f, arg_fields) in helpers
-        cols = [tbl[field] for field in arg_fields]
-        row_itr = zip(cols...)
-        push!(f_itr_pairs, (f, row_itr))
+function build_group_levels(group_indices, ngroupbys)
+    joint_group_levels = collect(keys(group_indices))
+    group_levels = Vector{Vector}(ngroupbys)
+    for j in 1:ngroupbys
+        group_levels[j] = [ level[j] for level in joint_group_levels ]
     end
+    map!(unique, group_levels)
+    return group_levels
+end
 
-    # TODO: Type this more strongly when possible.
+@noinline function build_group_indices(tbl, groupbys)
+    cols = [ tbl[groupby] for groupby in groupbys ]
+    row_itr = zip(cols...)
+
     group_indices = Dict{Any, Vector{Int}}()
 
-    # Fill the new column in row-by-row.
-    _grow_indices!(Val{N}(), group_indices, f_itr_pairs...)
+    _grow_indices!(group_indices, row_itr)
 
-    # Return the output
     return group_indices
 end
 
-@noinline @generated function _grow_indices!{N}(::Val{N}, indices, f_itr_pairs...)
-    row_subset_tuple_ex = Expr(:tuple)
-    group_tuple_ex = Expr(:tuple)
-    for i in 1:N
-        push!(row_subset_tuple_ex.args, Symbol("row_subset_$i"))
-        push!(group_tuple_ex.args, Symbol("group_$i"))
-    end
+function _grow_indices!(group_indices, row_itr)
+    for (i, row) in enumerate(row_itr)
+        group_level = row
 
-    return quote
-        @nexprs $N j->begin
-            f_j = f_itr_pairs[j][1]
-            itr_j = f_itr_pairs[j][2]
+        if haskey(group_indices, group_level)
+            push!(group_indices[group_level], i)
+        else
+            group_indices[group_level] = [i]
         end
-        zipped_row_itrs = @ncall $N zip itr
-
-        for (i, $row_subset_tuple_ex) in enumerate(zipped_row_itrs)
-            @nexprs $N j -> begin
-                if hasnulls(row_subset_j)
-                    group_j = Nullable{Union{}}()
-                else
-                    group_j = f_j(map(unwrap, row_subset_j))
-                end
-            end
-
-            if haskey(indices, $group_tuple_ex)
-                push!(indices[$group_tuple_ex], i)
-            else
-                indices[$group_tuple_ex] = Int[i]
-            end
-        end
-        return
     end
+    return group_indices
 end

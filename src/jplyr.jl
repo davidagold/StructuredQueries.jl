@@ -28,4 +28,9 @@ include("abstracttable/filter.jl")
 include("abstracttable/groupby.jl")
 include("abstracttable/summarize.jl")
 
+# Graph execution of GroupedTables
+include("abstracttable/grouped_table/collect.jl")
+include("abstracttable/grouped_table/generic.jl")
+include("abstracttable/grouped_table/summarize.jl")
+
 end # module jplyr

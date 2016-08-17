@@ -19,9 +19,11 @@ module AbstractTables
             index,
             fields,
             columns,
-            empty
+            empty,
+            groupby_predicate
 
     include("table/table.jl")
-    include("table/grouped_table/grouped_table.jl")
-    include("table/grouped_table/show.jl")
+    include("table/show.jl")
+    include("grouped_table/grouped_table.jl")
+    include("grouped_table/show.jl")
 end

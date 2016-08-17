@@ -30,6 +30,7 @@ type Table <: AbstractTable
     fields::Vector{Symbol}
     # allowsnulls::Vector{Bool}
     hasnulls::Vector{Bool}
+    metadata::Dict{Symbol, Any}
 
     function Table(index, columns)
         ncols = length(columns)
@@ -54,7 +55,7 @@ type Table <: AbstractTable
             fields[index[key]] = key
         end
         length(index) == length(columns) || error()
-        new(index, columns, fields, hasnulls)
+        new(index, columns, fields, hasnulls, Dict{Symbol, Any}())
     end
 end
 
@@ -236,4 +237,15 @@ function Base.hash(tbl::Table)
         h = hash(tbl[fld], h)
     end
     return @compat UInt(h)
+end
+
+# Other
+
+function groupby_predicate(tbl::Table, field::Symbol)
+    if hasfield(tbl.metadata, :groupby_predicates)
+        return tbl.metadata[:groupby_predicates][field]
+    else
+        msg = "No groupby predicates to show."
+        throw(ArgumentError(msg))
+    end
 end

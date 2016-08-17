@@ -27,7 +27,7 @@ Returns:
     if !isleaftype(T)
         # TODO: Make this a real code path based on the type-inference
         # independent map implementation in Base.
-        @printf("WARNING: Failed to type-infer expression: found %s", t)
+        @printf("WARNING: Failed to type-infer expression: found %s", T)
         T = Any
     end
     return T, row_itr
