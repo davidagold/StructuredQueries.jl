@@ -23,7 +23,24 @@ module TestGroupBy
     tbl2b = collect(qryb)
     @test isequal(tbl, _tbl)
     @test isequal(tbl2a, tbl2b)
-    @test isequal(tbl2a.group_indices, group_indices)
-    @test isequal(tbl2a.groupings, qrya.args)
+    @show(collect(keys(tbl2a.group_indices)))
+    for (group_level, indices) in zip(
+        [
+            (Nullable("brown"), Nullable(false)),
+            (Nullable("green"), Nullable(true)),
+            (Nullable("brown"), Nullable(true)),
+            (Nullable("blue"), Nullable(false))
+        ],
+        [
+            [3],
+            [1],
+            [2],
+            [4]
+        ]
+    )
+        @test isequal(tbl2a.group_indices[group_level], indices)
+    end
+
+    @test isequal(tbl2a.groupbys, qrya.args)
 
 end
