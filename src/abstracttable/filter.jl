@@ -61,9 +61,14 @@ function partial_copy!(
 end
 
 function get_subset_of_rows(tbl, indices)::Table
-    n = length(indices)
     new_tbl = empty(tbl)
-    for (fld, col) in eachcol(tbl)
+    # function barrier to assist type inference of column interator `eachcol`
+    return _get_subset_of_rows!(new_tbl, eachcol(tbl), indices)
+end
+
+@noinline function _get_subset_of_rows!(new_tbl, col_itr, indices)
+    n = length(indices)
+    for (fld, col) in col_itr
         new_col = NullableArray(eltype(eltype(col)), n)
         partial_copy!(new_col, col, indices)
         new_tbl[fld] = new_col
