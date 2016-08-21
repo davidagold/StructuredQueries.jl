@@ -23,11 +23,7 @@ function _collect(g_tbl::GroupedTable, g::SummarizeNode)
 end
 
 function _collect(g_tbl::GroupedTable, g::FilterNode)
-    f, arg_flds = parts(helper(g))[1]
-    
-    group_indices = g_tbl.group_indices
-    for group in collect(keys(group_indices))
-        indices = group_indices[group]
-
-    end
+    f, arg_fields = parts(helper(g))[1]
+    new_source_tbl = rhs_filter(f, g_tbl.source, arg_fields)
+    return _grouped_table(new_source_tbl, g_tbl.groupbys, g_tbl.metadata)
 end
