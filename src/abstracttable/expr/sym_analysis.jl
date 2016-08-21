@@ -111,8 +111,7 @@ function replace_symbols(
         if new_e.head == :call
             # Escape the functions being called so they're not sourced from the
             # TBL module.
-            # TODO: Restore this line after updating tests to ignore it.
-            # new_e.args[1] = esc(new_e.args[1])
+            new_e.args[1] = esc(new_e.args[1])
             for i in 2:length(new_e.args)
                 new_e.args[i] = replace_symbols(
                     new_e.args[i],
@@ -121,7 +120,9 @@ function replace_symbols(
                 )
             end
         elseif new_e.head == :quote
-            # Replace quoted symbols with raw symbols.
+            # Just escape the expression
+            return esc(new_e)
+        elseif new_e.head == :$
             return esc(new_e.args[1])
         elseif new_e.head in (:(||), :(&&))
             for i in 1:length(new_e.args)
@@ -141,9 +142,9 @@ function replace_symbols(
     elseif isa(e, Symbol)
         # Replace unquoted symbols with tuple indexing expressions.
         return Expr(:ref, tuple_name, mapping[e])
-    elseif isa(e, QuoteNode)
-        # Replace quoted symbols with raw symbols.
-        return e.value
+    # elseif isa(e, QuoteNode)
+    #     # Replace quoted symbols with raw symbols.
+    #     return e.value
     else
         # Hopefully we have a literal here since we stop going down the AST
         # when we hit this branch.
