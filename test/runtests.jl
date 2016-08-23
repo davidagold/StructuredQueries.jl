@@ -3,7 +3,6 @@ quiet = length(ARGS) > 0 && ARGS[1] == "-q"
 anyerrors = false
 
 my_tests = (
-    "groupby.jl",
     "query.jl",
 )
 
