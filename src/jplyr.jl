@@ -1,29 +1,39 @@
 module jplyr
-using Reexport
-include("AbstractTables/AbstractTables.jl")
-@reexport using .AbstractTables
 
-export  @query,
-        @qcollect
+export  Query,
+        @query,
+        @collect
     # following are exported only for test purposes
 
 # Graph interface
-include("querynode.jl")
-include("query.jl")
+include("utils.jl")
+include("expr/assignment_expr_ops.jl")
+include("expr/sym_analysis.jl")
+include("expr/kernel.jl")
 
-# AbstractTable utils
-include("abstracttable/expr/assignment_expr_ops.jl")
-include("abstracttable/expr/sym_analysis.jl")
+include("queryhelper/typedefs.jl")
+include("queryhelper/primitives.jl")
 
-# Generic graph execution
+include("querynode/typedefs.jl")
+include("querynode/primitives.jl")
+
+# Queries
+include("query/typedef.jl")
+include("query/primitives.jl")
+include("query/macros.jl")
+include("query/graph.jl")
+
+# macro argument processing
+include("process/generic.jl")
+include("process/select.jl")
+include("process/filter.jl")
+include("process/groupby.jl")
+include("process/summarize.jl")
+
+# Collect interface
 include("collect.jl")
 
-# Graph execution over AbstractTables
-include("abstracttable/collect.jl")
-include("abstracttable/generic.jl")
-include("abstracttable/utils.jl")
-include("abstracttable/select.jl")
-include("abstracttable/filter.jl")
-include("abstracttable/summarize.jl")
+# Other
+include("show.jl")
 
 end # module jplyr

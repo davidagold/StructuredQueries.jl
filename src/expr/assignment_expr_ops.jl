@@ -1,3 +1,23 @@
+function result_column(e::Symbol)::Tuple{QuoteNode, Any}
+    return QuoteNode(e), e
+end
+
+function result_column(e::Expr)::Tuple{QuoteNode, Any}
+    if !(e.head == :(=) || e.head == :kw)
+        error(@sprintf("Unable to extract result column from expression: %s", e))
+    end
+
+    res_field = e.args[1]
+    if !isa(res_field, Symbol)
+        error(@sprintf("Target column name is not a symbol: %s", s))
+    end
+
+    value_expr = e.args[2]
+
+    return QuoteNode(res_field), value_expr
+end
+
+
 """
 Extract the assigned column's name from an assignment-like expression.
 
@@ -45,7 +65,7 @@ function get_value_expr(e_in::Expr)::Any
         error(@sprintf("Unable to extract column name from %s", e_in))
     end
 
-    e_out = e_in.args[2]
+    value_expr = e_in.args[2]
 
-    return e_out
+    return value_expr
 end
