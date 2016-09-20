@@ -22,6 +22,7 @@ include("query/typedef.jl")
 include("query/primitives.jl")
 include("query/macros.jl")
 include("query/graph.jl")
+include("query/collect.jl")
 
 # macro argument processing
 include("process/generic.jl")
@@ -30,8 +31,6 @@ include("process/filter.jl")
 include("process/groupby.jl")
 include("process/summarize.jl")
 
-# Collect interface
-include("collect.jl")
 
 # Other
 include("show.jl")
