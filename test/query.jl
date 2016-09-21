@@ -52,4 +52,33 @@ qrya = @query summarize(src, avg_A = mean(A))
 qryb = @query src |> summarize(avg_A = mean(A))
 @test isequal(qrya, qryb)
 
+### JOINS
+
+src1 = MyData()
+src2 = MyData()
+
+# leftjoin
+
+qrya = @query leftjoin(src1, src2, A = B)
+qryb = @query src1 |> leftjoin(src2, A = B)
+@test isequal(qrya, qryb)
+
+# outerjoin
+
+qrya = @query outerjoin(src1, src2, A = B)
+qryb = @query src1 |> outerjoin(src2, A = B)
+@test isequal(qrya, qryb)
+
+# innerjoin
+
+qrya = @query innerjoin(src1, src2, A = B)
+qryb = @query src1 |> innerjoin(src2, A = B)
+@test isequal(qrya, qryb)
+
+# crossjoin
+
+qrya = @query crossjoin(src1, src2, A = B)
+qryb = @query src1 |> crossjoin(src2, A = B)
+@test isequal(qrya, qryb)
+
 end

@@ -36,3 +36,46 @@ immutable SummarizeHelper{F, G} <: QueryHelper
     g::G
     arg_fields::Vector{Symbol}
 end
+
+"""
+"""
+immutable OrderbyHelper{F} <: QueryHelper
+    f::F
+    arg_fields::Vector{Symbol}
+end
+
+"""
+"""
+immutable LeftJoinHelper{F, G} <: QueryHelper
+    f::F
+    g::G
+    arg_fields1::Vector{Symbol}
+    arg_fields2::Vector{Symbol}
+end
+
+"""
+"""
+immutable OuterJoinHelper{F, G} <: QueryHelper
+    f::F
+    g::G
+    arg_fields1::Vector{Symbol}
+    arg_fields2::Vector{Symbol}
+end
+
+"""
+"""
+immutable InnerJoinHelper{F, G} <: QueryHelper
+    f::F
+    g::G
+    arg_fields1::Vector{Symbol}
+    arg_fields2::Vector{Symbol}
+end
+
+"""
+"""
+immutable CrossJoinHelper{F, G} <: QueryHelper
+    f::F
+    g::G
+    arg_fields1::Vector{Symbol}
+    arg_fields2::Vector{Symbol}
+end

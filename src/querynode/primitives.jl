@@ -1,5 +1,5 @@
 """
-    Base.isequal(dn1::DataNode, dn2::DataNode)::Bool
+`Base.isequal(dn1::DataNode, dn2::DataNode)::Bool`
 
 Test two `DataNode`s for equality. This "loose" form of `DataNode` equality is
 satisfied when both `dn1` and `dn2` are empty, as in the case of a base
@@ -14,7 +14,7 @@ function Base.isequal(dn1::DataNode, dn2::DataNode)::Bool
 end
 
 """
-    Base.isequal{T<:QueryNode}(q1::T, q2::T)::Bool
+`Base.isequal{T<:QueryNode}(q1::T, q2::T)::Bool`
 
 Test two `QueryNode` objects for equality.
 
@@ -30,3 +30,46 @@ function Base.isequal{T<:QueryNode}(q1::T, q2::T)::Bool
     isequal(q1.args, q2.args) || return false
     return true
 end
+
+"""
+`Base.isequal{T<:JoinNode}(q1::T, q2::T)::Bool`
+
+Test two `JoinNode` objects for equality.
+
+This result depends only on the `input1`, `input2` and `args`fields of each `q1`
+and `q2`; the contents of the `helpers` and `parameters` fields are not
+compared.
+"""
+function Base.isequal{T<:JoinNode}(q1::T, q2::T)::Bool
+    isequal(q1.input1, q2.input2) || return false
+    isequal(q1.input2, q2.input2) || return false
+    isequal(q1.args, q2.args) || return false
+    return true
+end
+
+"""
+"""
+has_src(g::QueryNode) = has_src(g.input)
+has_src(g::DataNode) = isdefined(g, :input)
+
+"""
+"""
+set_src!(g::QueryNode, data) = set_src!(g.input, data)
+set_src!(g::DataNode, data) = (g.input = data; data)
+
+"""
+"""
+source(q::QueryNode) = source(q.input)
+source(q::JoinNode) = (source(q.input1), source(q.input2))
+source(d::DataNode) = d.input
+
+"""
+"""
+function set_helpers!(q::QueryNode, helpers)
+    for helper in helpers
+        push!(q.helpers, helper)
+    end
+    return helpers
+end
+set_helpers!(q::DataNode, helpers) =
+    throw(ArgumentError("$(typeof(g)) doesn't need helper."))

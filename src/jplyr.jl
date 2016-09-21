@@ -33,4 +33,9 @@ include("process/filter.jl")
 include("process/groupby.jl")
 include("process/summarize.jl")
 
+include("process/leftjoin.jl")
+include("process/outerjoin.jl")
+include("process/innerjoin.jl")
+include("process/crossjoin.jl")
+
 end # module jplyr
