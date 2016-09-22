@@ -1,4 +1,4 @@
-function process_arg!(node::InnerJoinNode, e)
+function process_arg!(q::InnerJoinNode, e)
     arg_parameters = Set{Symbol}()
 
     lhs, rhs = e.args[1], e.args[2]
@@ -7,19 +7,13 @@ function process_arg!(node::InnerJoinNode, e)
     g_expr, g_arg_fields = build_kernel_ex!(rhs, arg_parameters)
 
     for p in arg_parameters
-        push!(node.parameters, p)
+        push!(q.parameters, p)
     end
     return quote
-        InnerJoinHelper($f_expr, $g_expr, $f_arg_fields, $g_arg_fields)
-    end
-end
+        push!(
+            $(q.helpers),
+            InnerJoinHelper($f_expr, $g_expr, $f_arg_fields, $g_arg_fields)
+        )
 
-function _process_node!(q::InnerJoinNode)
-    helpers_ex = Expr(:ref, :InnerJoinHelper)
-    for arg in q.args
-        # TODO: check_arg(arg)
-        helper_ex = process_arg!(q, arg)
-        push!(helpers_ex.args, helper_ex)
     end
-    return helpers_ex
 end

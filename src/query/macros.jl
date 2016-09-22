@@ -20,9 +20,9 @@ end
 macro collect(qry)
     src, g = gen_graph(qry)
     set_helpers!_ex = process_graph!(g)
-    if isempty(src) # if we found a placeholder source (designated by a symbol)
+    if isempty(src)
         src_name = QuoteNode(source(g))
-    else # otherwise, there's an actual source
+    else
         src_name = src[1]
     end
     return quote

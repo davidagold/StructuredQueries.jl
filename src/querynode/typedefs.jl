@@ -24,7 +24,7 @@ end
 
 """
 """
-type SelectNode <: QueryNode
+immutable SelectNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
     helpers::Vector{SelectHelper}
@@ -37,7 +37,7 @@ end
 
 """
 """
-type FilterNode <: QueryNode
+immutable FilterNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
     helpers::Vector{FilterHelper}
@@ -50,7 +50,7 @@ end
 
 """
 """
-type GroupbyNode <: QueryNode
+immutable GroupbyNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
     helpers::Vector{GroupbyHelper}
@@ -63,7 +63,7 @@ end
 
 """
 """
-type SummarizeNode <: QueryNode
+immutable SummarizeNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
     helpers::Vector{SummarizeHelper}
@@ -76,7 +76,7 @@ end
 
 """
 """
-type OrderbyNode <: QueryNode
+immutable OrderbyNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
     helpers::Vector{SummarizeHelper}
@@ -91,7 +91,7 @@ end
 
 """
 """
-type LeftJoinNode <: JoinNode
+immutable LeftJoinNode <: JoinNode
     input1::QueryNode
     input2::QueryNode
     args::Vector{QueryArg}
@@ -105,7 +105,7 @@ end
 
 """
 """
-type OuterJoinNode <: JoinNode
+immutable OuterJoinNode <: JoinNode
     input1::QueryNode
     input2::QueryNode
     args::Vector{QueryArg}
@@ -119,7 +119,7 @@ end
 
 """
 """
-type InnerJoinNode <: JoinNode
+immutable InnerJoinNode <: JoinNode
     input1::QueryNode
     input2::QueryNode
     args::Vector{QueryArg}
@@ -133,7 +133,7 @@ end
 
 """
 """
-type CrossJoinNode <: JoinNode
+immutable CrossJoinNode <: JoinNode
     input1::QueryNode
     input2::QueryNode
     args::Vector{QueryArg}
