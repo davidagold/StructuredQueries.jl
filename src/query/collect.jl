@@ -1,7 +1,8 @@
 """
     Base.collect(qry::Query{Symbol}; sources...)
 
-`collect` a `Query` object formed by using a placeholder source in a query.
+Collect a `Query` object formed by using a placeholder source in a query.
+
 The symbols used as placeholders in the original `@query` invocation must appear
 as keys in the `sources...` keyword arguments. Each respective value should be
 the source that will be substituded for the symbol placeholder when the `Query`
@@ -40,6 +41,8 @@ end
 
 """
     Base.collect(source, graph::QueryNode)
+
+Collect a query `graph` against a data `source`.
 
 This method has two purposes. The first is to dispatch to the
 appropriate `collect` machinery. (The default collection machinery is
