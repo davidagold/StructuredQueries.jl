@@ -1,4 +1,5 @@
 abstract QueryNode
+abstract JoinNode <: QueryNode
 typealias QueryArg Union{Symbol, Expr}
 
 """
@@ -18,6 +19,8 @@ function (::Type{DataNode})(x)
     res.input = x
     return res
 end
+
+# One-table verbs
 
 """
 """
@@ -84,36 +87,60 @@ type OrderbyNode <: QueryNode
     end
 end
 
-"""
-"""
-has_src(g::QueryNode) = has_src(g.input)
-has_src(g::DataNode) = isdefined(g, :input)
+# Two-table verbs
 
 """
 """
-set_src!(g::QueryNode, data) = set_src!(g.input, data)
-set_src!(g::DataNode, data) = (g.input = data; data)
+type LeftJoinNode <: JoinNode
+    input1::QueryNode
+    input2::QueryNode
+    args::Vector{QueryArg}
+    helpers::Vector{LeftJoinHelper}
+    parameters
 
-source(q::QueryNode) = source(q.input)
-source(d::DataNode) = d.input
-
-### Helper logic
-
-typealias   NeedsHelper
-            Union{
-                SelectNode,
-                FilterNode,
-                GroupbyNode,
-                OrderbyNode,
-                SummarizeNode
-            }
-
-
-function set_helpers!{T<:NeedsHelper}(g::T, helpers)
-    for helper in helpers
-        push!(g.helpers, helper)
+    function (::Type{LeftJoinNode})(input1, input2, args)
+        return new(input1, input2, args, Vector{OrderbyHelper}(), Set{Symbol}())
     end
-    helpers
 end
-set_helpers!(g::QueryNode, helpers) =
-    throw(ArgumentError("$(typeof(g)) doesn't need helper."))
+
+"""
+"""
+type OuterJoinNode <: JoinNode
+    input1::QueryNode
+    input2::QueryNode
+    args::Vector{QueryArg}
+    helpers::Vector{OuterJoinHelper}
+    parameters
+
+    function (::Type{OuterJoinNode})(input1, input2, args)
+        return new(input1, input2, args, Vector{OuterJoinHelper}(), Set{Symbol}())
+    end
+end
+
+"""
+"""
+type InnerJoinNode <: JoinNode
+    input1::QueryNode
+    input2::QueryNode
+    args::Vector{QueryArg}
+    helpers::Vector{InnerJoinHelper}
+    parameters
+
+    function (::Type{InnerJoinNode})(input1, input2, args)
+        return new(input1, input2, args, Vector{InnerJoinHelper}(), Set{Symbol}())
+    end
+end
+
+"""
+"""
+type CrossJoinNode <: JoinNode
+    input1::QueryNode
+    input2::QueryNode
+    args::Vector{QueryArg}
+    helpers::Vector{CrossJoinHelper}
+    parameters
+
+    function (::Type{CrossJoinNode})(input1, input2, args)
+        return new(input1, input2, args, Vector{CrossJoinHelper}(), Set{Symbol}())
+    end
+end

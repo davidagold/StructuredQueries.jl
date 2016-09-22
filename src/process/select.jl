@@ -8,6 +8,11 @@
 #     end
 # end
 
+"""
+Processing a `QueryArg` of a `SelectNode` consists of (i) building an
+expression that creates a `SelectHelper` object; and (ii) identifying and
+processing any unbound parameters.
+"""
 function process_arg!(node::SelectNode, e)
     arg_parameters = Set{Symbol}()
     res_field, value_expr = result_column(e)

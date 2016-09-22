@@ -17,7 +17,6 @@ function result_column(e::Expr)::Tuple{QuoteNode, Any}
     return QuoteNode(res_field), value_expr
 end
 
-
 """
 Extract the assigned column's name from an assignment-like expression.
 

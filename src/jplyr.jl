@@ -16,12 +16,15 @@ include("queryhelper/primitives.jl")
 
 include("querynode/typedefs.jl")
 include("querynode/primitives.jl")
+include("querynode/show.jl")
 
-# Queries
+# queries
 include("query/typedef.jl")
 include("query/primitives.jl")
 include("query/macros.jl")
 include("query/graph.jl")
+include("query/show.jl")
+include("query/collect.jl")
 
 # macro argument processing
 include("process/generic.jl")
@@ -30,10 +33,9 @@ include("process/filter.jl")
 include("process/groupby.jl")
 include("process/summarize.jl")
 
-# Collect interface
-include("collect.jl")
-
-# Other
-include("show.jl")
+include("process/leftjoin.jl")
+include("process/outerjoin.jl")
+include("process/innerjoin.jl")
+include("process/crossjoin.jl")
 
 end # module jplyr

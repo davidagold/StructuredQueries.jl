@@ -2,22 +2,31 @@
 Processing a graph entails: (i) building `QueryHelper`-creating expressions;
 (ii) identifying and processing unbound query parameters.
 """
-function process_graph!(g)
+function process_graph!(g)::Expr
     set_helpers!_ex = Expr(:block)
-    return process_node!(g, set_helpers!_ex)
+    process_node!(g, set_helpers!_ex)
+    return set_helpers!_ex
 end
 
-process_node!(g::DataNode, set_helpers!_ex) = set_helpers!_ex
+process_node!(g::DataNode, set_helpers!_ex)::Void = nothing
 
 """
-Processing a `QueryArg` of a `SelectNode` consists of (i) building an
-expression that creates a `SelectHelper` object; and (ii) identifying and
-processing any unbound parameters.
 """
-function process_node!(g::QueryNode, set_helpers!_ex)
-    helpers_ex = _process_node!(g)
+function process_node!(q::QueryNode, set_helpers!_ex)::Void
+    helpers_ex = _process_node!(q)
     push!(set_helpers!_ex.args,
-          :( set_helpers!($g, $helpers_ex) )
+          :( set_helpers!($q, $helpers_ex) )
     )
-    return process_node!(g.input, set_helpers!_ex)
+    process_node!(q.input, set_helpers!_ex)
+    return
+end
+
+function process_node!(q::JoinNode, set_helpers!_ex)::Void
+    helpers_ex = _process_node!(q)
+    push!(set_helpers!_ex.args,
+          :( set_helpers!($q, $helpers_ex) )
+    )
+    process_node!(q.input1, set_helpers!_ex)
+    process_node!(q.input2, set_helpers!_ex)
+    return
 end
