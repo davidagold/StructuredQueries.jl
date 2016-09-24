@@ -17,7 +17,6 @@ function Base.show(io::IO, q::JoinNode, leftmargin=0)
     for (i, arg) in enumerate(q.args)
         pad(io, leftmargin+6); println("$i)  ", arg)
     end
-    depth += 1
     pad(io, leftmargin+2); println("inputs:")
     pad(io, leftmargin+6); print(io, "1)  ")
     show(io, q.input1, leftmargin+10)

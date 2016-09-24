@@ -6,10 +6,11 @@
 
 StructuredQueries provides a generic framework for data manipulation in Julia.
 
-This package is currently under development and is not registered. You can obtain it for yourself by calling
+You can install this package by calling
 ```
-julia> Pkg.clone("https://github.com/davidagold/StructuredQueries.jl.git")
+julia> Pkg.add("StructuredQueries")
 ```
+This package supports Julia 0.5.
 
 ## Objectives
 

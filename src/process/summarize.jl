@@ -17,16 +17,6 @@ function process_arg!(q::SummarizeNode, arg)::Expr
         )
     end
 end
-#
-# function _process_node!(q::SummarizeNode)::Expr
-#     check_node(q)
-#     helpers_ex = Expr(:ref, :SummarizeHelper)
-#     for arg in q.args
-#         helper_ex = process_arg!(q, arg)
-#         push!(helpers_ex.args, helper_ex)
-#     end
-#     return helpers_ex
-# end
 
 function check_node(g::SummarizeNode)
     for e in g.args
