@@ -1,32 +1,37 @@
-"""
-"""
-macro query(qry)
+function _query(qry)
     src, g = gen_graph(qry)
     # process the graph to identify parameters and build QueryHelper exprs
-    set_helpers!_ex = process_graph!(g)
+    push!_helpers_ex = process_graph!(g)
     if isempty(src) # if we found a placeholder source (designated by a symbol)
         src_name = QuoteNode(source(g))
     else # otherwise, there's an actual source
         src_name = src[1]
     end
+    return push!_helpers_ex, src_name, g
+end
+
+"""
+    @query(qry)
+
+Return a `Query{S}` object that represents the query structure of `qry`.
+"""
+macro query(qry)
+    push!_helpers_ex, src_name, g = _query(qry)
     return quote
-        $set_helpers!_ex
+        $push!_helpers_ex
         Query($(esc(src_name)), $g)
     end
 end
 
 """
+    @query(qry)
+
+Like `@query`, but automatically `collect`s the resulting `Query` object.
 """
 macro collect(qry)
-    src, g = gen_graph(qry)
-    set_helpers!_ex = process_graph!(g)
-    if isempty(src)
-        src_name = QuoteNode(source(g))
-    else
-        src_name = src[1]
-    end
+    push!_helpers_ex, src_name, g = _query(qry)
     return quote
-        $set_helpers!_ex
+        $push!_helpers_ex
         collect(Query($(esc(src_name)), $g))
     end
 end

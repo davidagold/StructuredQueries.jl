@@ -23,7 +23,6 @@ Push expressions that generate `QueryHelper`s to the `args` field of
 Recursively acts on the graph of `QueryNode`s of which `q` is a part.
 """
 function process_node!(q::QueryNode, push!_helpers_ex)::Void
-    # helpers_ex = _process_node!(q)
     for arg in q.args
         push!_helper_ex = process_arg!(q, arg)
         push!(
@@ -36,7 +35,6 @@ function process_node!(q::QueryNode, push!_helpers_ex)::Void
 end
 
 function process_node!(q::JoinNode, push!_helpers_ex)::Void
-    # helpers_ex = _process_node!(q)
     for arg in q.args
         push!_helper_ex = process_arg!(q, arg)
         push!(

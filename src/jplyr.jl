@@ -25,9 +25,12 @@ include("query/macros.jl")
 include("query/graph.jl")
 include("query/show.jl")
 include("query/collect.jl")
+include("query/lift.jl")
 
 # macro argument processing
+include("process/utils.jl")
 include("process/generic.jl")
+
 include("process/select.jl")
 include("process/filter.jl")
 include("process/groupby.jl")
