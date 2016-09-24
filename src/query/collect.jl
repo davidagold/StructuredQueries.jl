@@ -46,7 +46,7 @@ Collect a query `graph` against a data `source`.
 
 This method has two purposes. The first is to dispatch to the
 appropriate `collect` machinery. (The default collection machinery is
-"sequential collection" as illustrated in `jplyr._collect`).
+"sequential collection" as illustrated in `StructuredQueries._collect`).
 
 The second is to set `source` as the `input` field of the base `DataNode` of
 the graph.

@@ -113,7 +113,7 @@ function replace_symbols(
         new_e = copy(e)
         if new_e.head == :call
             # Escape the functions being called so they're not sourced from the
-            # jplyr module
+            # StructuredQueries module
             new_e.args[1] = esc(new_e.args[1])
             for i in 2:length(new_e.args)
                 new_e.args[i] = replace_symbols(

@@ -10,6 +10,6 @@ notifications:
   email: false
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'Pkg.clone(pwd()); Pkg.build("jplyr"); Pkg.test("jplyr"; coverage=true)'
+  - julia -e 'Pkg.clone(pwd()); Pkg.build("StructuredQueries"); Pkg.test("StructuredQueries"; coverage=true)'
 after_success:
-  - julia -e 'cd(Pkg.dir("jplyr")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
+  - julia -e 'cd(Pkg.dir("StructuredQueries")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'

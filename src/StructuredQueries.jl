@@ -1,4 +1,4 @@
-module jplyr
+module StructuredQueries
 
 export  Query,
         @query,
@@ -41,4 +41,4 @@ include("process/outerjoin.jl")
 include("process/innerjoin.jl")
 include("process/crossjoin.jl")
 
-end # module jplyr
+end # module StructuredQueries

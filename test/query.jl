@@ -1,6 +1,6 @@
 module TestQuery
 
-using jplyr
+using StructuredQueries
 using Base.Test
 
 type MyData end

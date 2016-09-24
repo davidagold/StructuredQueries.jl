@@ -1,5 +1,5 @@
 """
-    jplyr.QUERYNODE
+    StructuredQueries.QUERYNODE
 """
 const QUERYNODE = Dict{Symbol, DataType}(
     # one-table verbs
