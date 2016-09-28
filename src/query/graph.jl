@@ -17,9 +17,9 @@ const QUERYNODE = Dict{Symbol, DataType}(
     :crossjoin => CrossJoinNode
 )
 
-function gen_graph(x)
+function gen_graph(qry)
     src = Vector{Symbol}()
-    return src, gen_graph!(x, false, src)
+    return src, gen_graph!(qry, false, src)
 end
 
 function gen_graph!(x::Symbol, piped_to, src)
@@ -33,8 +33,7 @@ function gen_graph!(ex::Expr, piped_to, src)
         args = exfargs(ex)
         if haskey(QUERYNODE, verb)
             T = QUERYNODE[verb]
-            # gen_node!(ex, piped_to, T, ntables(T), src)
-            gen_node!(args, piped_to, T, src)
+            return gen_node!(args, piped_to, T, src)
         elseif verb == :|>
             return (gen_graph!(args[1], false, src) |>
                     gen_graph!(args[2], true, src))
@@ -45,11 +44,10 @@ function gen_graph!(ex::Expr, piped_to, src)
 end
 
 function gen_node!{T<:QueryNode}(args, piped_to, ::Type{T}, src)
-    # args = exfargs(ex)
-    if !piped_to
+    if !piped_to # assume first argument is an input
         input = args[1]
         return T(gen_graph!(input, false, src), args[2:end])
-    else # if piped to, assume all args are conditions
+    else # assume all arguments are query args
         return x -> T(x, args)
     end
 end

@@ -3,7 +3,6 @@ module StructuredQueries
 export  Query,
         @query,
         @collect
-    # following are exported only for test purposes
 
 # Graph interface
 include("utils.jl")

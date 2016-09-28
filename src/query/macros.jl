@@ -24,7 +24,7 @@ macro query(qry)
 end
 
 """
-    @query(qry)
+    @collect(qry)
 
 Like `@query`, but automatically `collect`s the resulting `Query` object.
 """

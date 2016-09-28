@@ -1,24 +1,3 @@
-# TODO: Check if this function (which potentially has to do run-time method
-# dispatch) is a bottleneck. If there were no uncertainty whether elements were
-# going to be Nullable, that could be resolved.
-# NOTE: Quick testing suggests this is not the bottleneck for most code.
-@inline function hasnulls(itr::Any)::Bool
-    res = false
-    for el in itr
-        if isa(el, Nullable)
-            res |= isnull(el)
-        end
-    end
-    return res
-end
-
-"""
-Like get(x::Nullable), but applicable to all types. Also unsafe, so
-conditional on some checks happening before this point.
-"""
-@inline unsafe_get(x::Nullable) = x.value
-@inline unsafe_get(x::Any) = x
-
 function lift(f, T, x)
     if x.isnull
         return Nullable{T}()
@@ -45,7 +24,7 @@ end
 
 # 3VL
 
-function lift(f::typeof(&), ::Type{Bool}, x, y)
+function lift(f::typeof(&), ::Type{Bool}, x, y)::Nullable{Bool}
     return ifelse(
         isnull(x),
         ifelse(
@@ -54,22 +33,22 @@ function lift(f::typeof(&), ::Type{Bool}, x, y)
             ifelse(
                 unwrap(y),
                 Nullable{Bool}(),
-                false
+                Nullable(false)
             )
         ),
         ifelse(
             isnull(y),
             ifelse(
-                unrap(x),
+                unwrap(x),
                 Nullable{Bool}(),
-                false
+                Nullable(false)
             ),
-            x & y
+            Nullable(x.value & y.value)
         )
     )
 end
 
-function lift(f::typeof(|), ::Type{Bool}, x, y)
+function lift(f::typeof(|), ::Type{Bool}, x, y)::Nullable{Bool}
     return ifelse(
         isnull(x),
         ifelse(
@@ -77,7 +56,7 @@ function lift(f::typeof(|), ::Type{Bool}, x, y)
             Nullable{Bool}(),
             ifelse(
                 unwrap(y),
-                true,
+                Nullable(true),
                 Nullable{Bool}()
             )
         ),
@@ -85,10 +64,10 @@ function lift(f::typeof(|), ::Type{Bool}, x, y)
             isnull(y),
             ifelse(
                 unwrap(x),
-                true,
+                Nullable(true),
                 Nullable{Bool}()
             ),
-            x | y
+            Nullable(x.value | y.value)
         )
     )
 end
