@@ -22,6 +22,8 @@ Push expressions that generate `QueryHelper`s to the `args` field of
 
 Recursively acts on the graph of `QueryNode`s of which `q` is a part.
 """
+# NOTE: process_node!(q::FilterNode, push!_helpers_ex) lives in
+# src/process/filter.jl
 function process_node!(q::QueryNode, push!_helpers_ex)::Void
     for arg in q.args
         push!_helper_ex = process_arg!(q, arg)
