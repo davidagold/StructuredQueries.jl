@@ -79,7 +79,7 @@ end
 immutable OrderbyNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
-    helpers::Vector{SummarizeHelper}
+    helpers::Vector{OrderbyHelper}
     parameters
 
     function (::Type{OrderbyNode})(input, args)

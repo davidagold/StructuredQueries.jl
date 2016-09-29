@@ -22,6 +22,13 @@ end
 
 """
 """
+immutable OrderbyHelper{F} <: QueryHelper
+    f::F
+    arg_fields::Vector{Symbol}
+end
+
+"""
+"""
 immutable GroupbyHelper{F} <: QueryHelper
     is_predicate::Bool
     f::F
@@ -34,13 +41,6 @@ immutable SummarizeHelper{F, G} <: QueryHelper
     res_field::Symbol
     f::F
     g::G
-    arg_fields::Vector{Symbol}
-end
-
-"""
-"""
-immutable OrderbyHelper{F} <: QueryHelper
-    f::F
     arg_fields::Vector{Symbol}
 end
 

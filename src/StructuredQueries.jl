@@ -32,6 +32,7 @@ include("process/generic.jl")
 
 include("process/select.jl")
 include("process/filter.jl")
+include("process/orderby.jl")
 include("process/groupby.jl")
 include("process/summarize.jl")
 
