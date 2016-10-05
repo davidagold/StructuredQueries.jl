@@ -17,14 +17,17 @@ include("querynode/typedefs.jl")
 include("querynode/primitives.jl")
 include("querynode/show.jl")
 
-# queries
+# query
 include("query/typedef.jl")
 include("query/primitives.jl")
 include("query/macros.jl")
 include("query/graph.jl")
 include("query/show.jl")
-include("query/collect.jl")
-include("query/lift.jl")
+
+# collect
+include("collect/utils.jl")
+include("collect/collect.jl")
+include("collect/lift.jl")
 
 # macro argument processing
 include("process/utils.jl")

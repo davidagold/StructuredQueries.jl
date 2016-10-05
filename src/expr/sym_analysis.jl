@@ -111,17 +111,26 @@ function replace_symbols(
     if isa(e, Expr)
         # To ensure purity, we copy any Expr objects rather than mutate them.
         new_e = copy(e)
-        if new_e.head == :call
-            # Escape the functions being called so they're not sourced from the
-            # StructuredQueries module
-            new_e.args[1] = esc(new_e.args[1])
-            for i in 2:length(new_e.args)
-                new_e.args[i] = replace_symbols(
-                    new_e.args[i],
-                    mapping,
-                    tuple_name,
+        if e.head == :call
+            # Do two things:
+            #   1)  Escape function `f` being called so its not rooted to the
+            #       module StructuredQueries
+            #   2)  replace `f(xs...)` with `lift(f, xs...)`
+            args_copy = copy(e.args)
+            lifted_e = Expr(:call)
+            push!(lifted_e.args, Expr(:., :StructuredQueries, QuoteNode(:lift)))
+            push!(lifted_e.args, esc(args_copy[1]))
+            for i in 2:length(args_copy)
+                push!(
+                    lifted_e.args,
+                    replace_symbols(
+                        args_copy[i],
+                        mapping,
+                        tuple_name
+                    )
                 )
             end
+            return lifted_e
         elseif new_e.head == :quote
             # Just escape the expression
             return esc(new_e)
