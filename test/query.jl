@@ -32,6 +32,20 @@ qrya = @query filter(src, A > .5)
 qryb = @query src |> filter(A > .5)
 @test isequal(qrya, qryb)
 
+# orderby
+
+qrya = @query orderby(src, A)
+qryb = @query src|> orderby(A)
+@test isequal(qrya, qryb)
+
+qrya = @query orderby(src, 5 * B)
+qryb = @query src |> orderby(5 * B)
+@test isequal(qrya, qryb)
+
+qrya = @query orderby(src, A, 5 * B)
+qryb = @query src |> orderby(A, 5 * B)
+@test isequal(qrya, qryb)
+
 # groupby
 
 qrya = @query groupby(src, D)
