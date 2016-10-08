@@ -4,6 +4,7 @@ anyerrors = false
 
 my_tests = (
     "query.jl",
+    "lift.jl"
 )
 
 println("Running tests:")
