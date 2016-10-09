@@ -2,7 +2,6 @@
     StructuredQueries.QUERYNODE
 """
 const QUERYNODE = Dict{Symbol, DataType}(
-    # one-table verbs
     :select => SelectNode,
     :filter => FilterNode,
     :groupby => GroupbyNode,
@@ -10,7 +9,7 @@ const QUERYNODE = Dict{Symbol, DataType}(
     :summarize => SummarizeNode,
     :summarise => SummarizeNode,
 
-    # Two-table verbs
+    # <: JoinNode
     :leftjoin => LeftJoinNode,
     :outerjoin => OuterJoinNode,
     :innerjoin => InnerJoinNode,
