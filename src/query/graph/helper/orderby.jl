@@ -1,10 +1,5 @@
-function process_arg!(q::OrderbyNode, e)::Expr
+function gen_helper_ex(::Type{OrderbyHelper}, ex)::Expr
     arg_parameters = Set{Symbol}()
-    f_expr, arg_fields = build_kernel_ex!(e, arg_parameters)
-    for p in arg_parameters
-        push!(q.parameters, p)
-    end
-    return quote
-        push!($(q.helpers), OrderbyHelper($f_expr, $arg_fields))
-    end
+    f_ex, arg_fields = build_kernel_ex!(ex, arg_parameters)
+    return Expr(:call, OrderbyHelper, f_ex, arg_fields)
 end

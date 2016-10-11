@@ -1,67 +1,75 @@
 """
     StructuredQueries.QUERYNODE
 """
-const QUERYNODE = Dict{Symbol, DataType}(
-    :select => SelectNode,
-    :filter => FilterNode,
-    :groupby => GroupbyNode,
-    :orderby => OrderbyNode,
-    :summarize => SummarizeNode,
-    :summarise => SummarizeNode,
+const QUERYNODE = Dict{Symbol, Tuple{DataType, DataType}}(
+    :select => (SelectNode, SelectHelper),
+    :filter => (FilterNode, FilterHelper),
+    :groupby => (GroupbyNode, GroupbyHelper),
+    :orderby => (OrderbyNode, OrderbyHelper),
+    :summarize => (SummarizeNode, SummarizeHelper),
+    :summarise => (SummarizeNode, SummarizeHelper),
 
     # <: JoinNode
-    :leftjoin => LeftJoinNode,
-    :outerjoin => OuterJoinNode,
-    :innerjoin => InnerJoinNode,
-    :crossjoin => CrossJoinNode
+    :leftjoin => (LeftJoinNode, LeftJoinHelper),
+    :outerjoin => (OuterJoinNode, OuterJoinHelper),
+    :innerjoin => (InnerJoinNode, InnerJoinHelper),
+    :crossjoin => (CrossJoinNode, CrossJoinHelper)
 )
 
-function gen_graph(qry)
-    src = Vector{Symbol}()
-    return src, gen_graph!(qry, false, src)
-end
+gen_graph_ex(qry) = gen_graph_ex(qry, false)
+gen_graph_ex(src::Symbol, piped_to) = Expr(:call, :DataNode, esc(src))
 
-function gen_graph!(x::Symbol, piped_to, src)
-    isempty(src) && push!(src, x)
-    return DataNode()
-end
-
-function gen_graph!(ex::Expr, piped_to, src)
+function gen_graph_ex(ex::Expr, piped_to)
     if ex.head == :call
         verb = exf(ex)
-        args = exfargs(ex)
+        _args = exfargs(ex)
         if haskey(QUERYNODE, verb)
-            T = QUERYNODE[verb]
-            return gen_node!(args, piped_to, T, src)
+            T, H = QUERYNODE[verb]
+            return gen_node_ex(T, H, _args, piped_to)
         elseif verb == :|>
-            return (gen_graph!(args[1], false, src) |>
-                    gen_graph!(args[2], true, src))
+            return gen_graph_ex(_args[1], false) |>
+                   gen_graph_ex(_args[2], true)
         end
-    elseif ex.head == :quote
-        return DataNode(ex.args[1])
+    else # not valid syntax
+        # TODO: informative error message
+        error()
     end
 end
 
-function gen_node!{T<:QueryNode}(args, piped_to, ::Type{T}, src)
-    if !piped_to # assume first argument is an input
-        input = args[1]
-        return T(gen_graph!(input, false, src), args[2:end])
-    else # assume all arguments are query args
-        return x -> T(x, args)
+function gen_node_ex{T<:QueryNode}(::Type{T}, H, _args, piped_to)
+    if !piped_to # first argument is an input
+        input = _args[1]
+        args = _args[2:end]
+        return Expr(
+            :call, T,
+            gen_graph_ex(input, false),
+            args,
+            gen_helpers_ex(H, args)
+        )
+    else # all _args are query args
+        return x -> Expr(:call, T, x, _args, gen_helpers_ex(H, _args))
     end
 end
 
-function gen_node!{T<:JoinNode}(args, piped_to, ::Type{T}, src)
+function gen_node_ex{T<:JoinNode}(::Type{T}, H, _args, piped_to)
     if !piped_to
-        input1 = args[1]
-        input2 = args[2]
-        return T(
-            gen_graph!(input1, false, src),
-            gen_graph!(input2, false, src),
-            args[3:end]
+        input1 = _args[1]
+        input2 = _args[2]
+        args = _args[3:end]
+        return Expr(
+            :call, T,
+            gen_graph_ex(input1, false), gen_graph_ex(input2, false),
+            args,
+            gen_helpers_ex(H, args)
         )
     else
-        input2 = args[1]
-        return x -> T(x, gen_graph!(input2, false, src), args[2:end])
+        input2 = _args[1]
+        args = _args[2:end]
+        return x -> Expr(
+            :call, T,
+            x, gen_graph_ex(input2, false),
+            args,
+            gen_helpers_ex(H, args)
+        )
     end
 end

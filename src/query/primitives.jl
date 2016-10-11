@@ -9,7 +9,6 @@ expression passed to `@query` and reflects the expectation that the same query
 `isequal`.
 """
 function Base.isequal(qry1::Query, qry2::Query)::Bool
-    isequal(qry1.source, qry2.source) || return false
     isequal(qry1.graph, qry2.graph) || return false
     return true
 end

@@ -49,27 +49,6 @@ end
 
 """
 """
-has_src(g::QueryNode) = has_src(g.input)
-has_src(g::DataNode) = isdefined(g, :input)
-
-"""
-"""
-set_src!(g::QueryNode, data) = set_src!(g.input, data)
-set_src!(g::DataNode, data) = (g.input = data; data)
-
-"""
-"""
 source(q::QueryNode) = source(q.input)
 source(q::JoinNode) = (source(q.input1), source(q.input2))
 source(d::DataNode) = d.input
-
-"""
-"""
-function set_helpers!(q::QueryNode, helpers)
-    for helper in helpers
-        push!(q.helpers, helper)
-    end
-    return helpers
-end
-set_helpers!(q::DataNode, helpers) =
-    throw(ArgumentError("$(typeof(g)) doesn't need helper."))
