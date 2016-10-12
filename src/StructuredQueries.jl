@@ -4,44 +4,53 @@ export  Query,
         @query,
         @collect
 
-# Graph interface
 include("utils.jl")
-include("expr/assignment_expr_ops.jl")
-include("expr/sym_analysis.jl")
-include("expr/kernel.jl")
 
-include("queryhelper/typedefs.jl")
-include("queryhelper/primitives.jl")
+##############################################################################
+##
+## query
+##
+##############################################################################
 
-include("querynode/typedefs.jl")
-include("querynode/primitives.jl")
-include("querynode/show.jl")
+# QueryHelper API
+include("query/helper/typedefs.jl")
+include("query/helper/primitives.jl")
 
-# query
+# QueryNode API
+include("query/node/typedefs.jl")
+include("query/node/primitives.jl")
+include("query/node/show.jl")
+
+# Query API
 include("query/typedef.jl")
 include("query/primitives.jl")
 include("query/macros.jl")
-include("query/graph.jl")
 include("query/show.jl")
 
-# collect
+# graph generation
+include("query/graph/graph.jl")
+## helper generation
+include("query/graph/helper/generic.jl")
+include("query/graph/helper/select.jl")
+include("query/graph/helper/filter.jl")
+include("query/graph/helper/orderby.jl")
+include("query/graph/helper/groupby.jl")
+include("query/graph/helper/summarize.jl")
+include("query/graph/helper/join.jl")
+## kernel generation
+include("query/graph/kernel/assignment_expr_ops.jl")
+include("query/graph/kernel/sym_analysis.jl")
+include("query/graph/kernel/kernel.jl")
+
+##############################################################################
+##
+## collect
+##
+##############################################################################
+
+# collect API
 include("collect/utils.jl")
 include("collect/collect.jl")
 include("collect/lift.jl")
-
-# macro argument processing
-include("process/utils.jl")
-include("process/generic.jl")
-
-include("process/select.jl")
-include("process/filter.jl")
-include("process/orderby.jl")
-include("process/groupby.jl")
-include("process/summarize.jl")
-
-include("process/leftjoin.jl")
-include("process/outerjoin.jl")
-include("process/innerjoin.jl")
-include("process/crossjoin.jl")
 
 end # module StructuredQueries

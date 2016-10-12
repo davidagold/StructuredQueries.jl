@@ -1,10 +1,9 @@
 """
-    Query{S}
+    Query
 
-Wraps a `source::S` and `graph::QueryNode` fields that together represent the
-structure of a query passed to the `@query` macro.
+Wrap a `QueryNode` graph that represents the structure of a query passed to the
+`@query` macro.
 """
-type Query{S}
-    source::S
+type Query
     graph::QueryNode
 end

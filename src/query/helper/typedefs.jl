@@ -1,9 +1,7 @@
 """
 """
 abstract QueryHelper
-# NOTE: Perhaps later we will decide the following typealias provides a nice
-# conceptual finish
-# typealias ArgFields Vector{Symbol}
+abstract JoinHelper <: QueryHelper
 
 """
 """
@@ -46,7 +44,7 @@ end
 
 """
 """
-immutable LeftJoinHelper{F, G} <: QueryHelper
+immutable LeftJoinHelper{F, G} <: JoinHelper
     f::F
     g::G
     arg_fields1::Vector{Symbol}
@@ -55,7 +53,7 @@ end
 
 """
 """
-immutable OuterJoinHelper{F, G} <: QueryHelper
+immutable OuterJoinHelper{F, G} <: JoinHelper
     f::F
     g::G
     arg_fields1::Vector{Symbol}
@@ -64,7 +62,7 @@ end
 
 """
 """
-immutable InnerJoinHelper{F, G} <: QueryHelper
+immutable InnerJoinHelper{F, G} <: JoinHelper
     f::F
     g::G
     arg_fields1::Vector{Symbol}
@@ -73,7 +71,7 @@ end
 
 """
 """
-immutable CrossJoinHelper{F, G} <: QueryHelper
+immutable CrossJoinHelper{F, G} <: JoinHelper
     f::F
     g::G
     arg_fields1::Vector{Symbol}
