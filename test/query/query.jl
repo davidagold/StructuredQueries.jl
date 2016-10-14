@@ -3,8 +3,10 @@ module TestQuery
 using StructuredQueries
 using Base.Test
 
-type MyData end
+io = IOBuffer()
+disp = TextDisplay(IOBuffer())
 
+type MyData end
 src = MyData()
 
 n = 10
@@ -14,57 +16,79 @@ D = rand(["a", "b"], n)
 
 # select
 
-qrya = @query select(src, A)
-qryb = @query src |> select(A)
-@test isequal(qrya, qryb)
+q_a = @query select(src, A)
+q_b = @query src |> select(A)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
-qrya = @query select(src, C = A * B)
-qryb = @query src |> select(C = A * B)
-@test isequal(qrya, qryb)
+q_a = @query select(src, C = A * B)
+q_b = @query src |> select(C = A * B)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
-qrya = @query select(src, A, C = A * B)
-qryb = @query src |> select(A, C = A * B)
-@test isequal(qrya, qryb)
+q_a = @query select(src, A, C = A * B)
+q_b = @query src |> select(A, C = A * B)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
 # filter
 
-qrya = @query filter(src, A > .5)
-qryb = @query src |> filter(A > .5)
-@test isequal(qrya, qryb)
+q_a = @query filter(src, A > .5)
+q_b = @query src |> filter(A > .5)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
 # orderby
 
-qrya = @query orderby(src, A)
-qryb = @query src|> orderby(A)
-@test isequal(qrya, qryb)
+q_a = @query orderby(src, A)
+q_b = @query src|> orderby(A)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
-qrya = @query orderby(src, 5 * B)
-qryb = @query src |> orderby(5 * B)
-@test isequal(qrya, qryb)
+q_a = @query orderby(src, 5 * B)
+q_b = @query src |> orderby(5 * B)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
-qrya = @query orderby(src, A, 5 * B)
-qryb = @query src |> orderby(A, 5 * B)
-@test isequal(qrya, qryb)
+q_a = @query orderby(src, A, 5 * B)
+q_b = @query src |> orderby(A, 5 * B)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
 # groupby
 
-qrya = @query groupby(src, D)
-qryb = @query src |> groupby(D)
-@test isequal(qrya, qryb)
+q_a = @query groupby(src, D)
+q_b = @query src |> groupby(D)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
-qrya = @query groupby(src, A > .5)
-qryb = @query src |> groupby(A > .5)
-@test isequal(qrya, qryb)
+q_a = @query groupby(src, A > .5)
+q_b = @query src |> groupby(A > .5)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
-qrya = @query groupby(src, D, A > .5)
-qryb = @query src |> groupby(D, A > .5)
-@test isequal(qrya, qryb)
+q_a = @query groupby(src, D, A > .5)
+q_b = @query src |> groupby(D, A > .5)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
 # summarize
 
-qrya = @query summarize(src, avg_A = mean(A))
-qryb = @query src |> summarize(avg_A = mean(A))
-@test isequal(qrya, qryb)
+q_a = @query summarize(src, avg_A = mean(A))
+q_b = @query src |> summarize(avg_A = mean(A))
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
 ### JOINS
 
@@ -73,26 +97,34 @@ src2 = MyData()
 
 # leftjoin
 
-qrya = @query leftjoin(src1, src2, A = B)
-qryb = @query src1 |> leftjoin(src2, A = B)
-@test isequal(qrya, qryb)
+q_a = @query leftjoin(src1, src2, A = B)
+q_b = @query src1 |> leftjoin(src2, A = B)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
 # outerjoin
 
-qrya = @query outerjoin(src1, src2, A = B)
-qryb = @query src1 |> outerjoin(src2, A = B)
-@test isequal(qrya, qryb)
+q_a = @query outerjoin(src1, src2, A = B)
+q_b = @query src1 |> outerjoin(src2, A = B)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
 # innerjoin
 
-qrya = @query innerjoin(src1, src2, A = B)
-qryb = @query src1 |> innerjoin(src2, A = B)
-@test isequal(qrya, qryb)
+q_a = @query innerjoin(src1, src2, A = B)
+q_b = @query src1 |> innerjoin(src2, A = B)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
 # crossjoin
 
-qrya = @query crossjoin(src1, src2, A = B)
-qryb = @query src1 |> crossjoin(src2, A = B)
-@test isequal(qrya, qryb)
+q_a = @query crossjoin(src1, src2, A = B)
+q_b = @query src1 |> crossjoin(src2, A = B)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
 
 end
