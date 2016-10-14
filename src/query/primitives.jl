@@ -12,3 +12,6 @@ function Base.isequal(qry1::Query, qry2::Query)::Bool
     isequal(qry1.graph, qry2.graph) || return false
     return true
 end
+
+source(q::Query) = source(q.graph)
+graph(q::Query) = q.graph

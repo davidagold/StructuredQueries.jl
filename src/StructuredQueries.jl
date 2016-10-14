@@ -2,7 +2,9 @@ module StructuredQueries
 
 export  Query,
         @query,
-        @collect
+        @collect,
+        source,
+        graph
 
 include("utils.jl")
 
