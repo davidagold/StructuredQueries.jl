@@ -6,8 +6,9 @@ using Base.Test
 io = IOBuffer()
 disp = TextDisplay(IOBuffer())
 
-type MyData end
+immutable MyData end
 src = MyData()
+_src = MyData()
 
 n = 10
 A = rand(n)
@@ -123,6 +124,17 @@ display(disp, q_a)
 
 q_a = @query crossjoin(src1, src2, A = B)
 q_b = @query src1 |> crossjoin(src2, A = B)
+@test isequal(q_a, q_b)
+show(io, q_a)
+display(disp, q_a)
+
+##################
+# querying a Query
+
+f(q::Query) = @query q |> select(B)
+q_a = f(@query filter(src, A > .5))
+q_b = @query filter(src, A > .5) |> select(B)
+@test isequal(src, _src)
 @test isequal(q_a, q_b)
 show(io, q_a)
 display(disp, q_a)

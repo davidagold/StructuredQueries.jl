@@ -16,8 +16,12 @@ const QUERYNODE = Dict{Symbol, Tuple{DataType, DataType}}(
     :crossjoin => (CrossJoinNode, CrossJoinHelper)
 )
 
+_leaf(x) = DataNode(x)
+_leaf(q::Query) = q.graph
+
 gen_graph_ex(qry) = gen_graph_ex(qry, false)
-gen_graph_ex(src::Symbol, piped_to) = Expr(:call, :DataNode, esc(src))
+gen_graph_ex(src::Symbol, piped_to) =
+    Expr(:call, :(StructuredQueries._leaf), esc(src))
 
 function gen_graph_ex(ex::Expr, piped_to)
     if ex.head == :call

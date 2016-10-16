@@ -1,3 +1,3 @@
-function Base.show(io::IO, qry::Query)::Void
-    print(io, "A Query.")
+function Base.show(io::IO, q::Query)::Void
+    @printf(io, "Query against a source of type %s", typeof(source(q)))
 end
