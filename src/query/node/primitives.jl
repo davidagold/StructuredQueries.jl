@@ -1,5 +1,5 @@
 """
-`Base.isequal(dn1::DataNode, dn2::DataNode)::Bool`
+    Base.isequal(dn1::DataNode, dn2::DataNode)::Bool
 
 Test two `DataNode`s for equality. This "loose" form of `DataNode` equality is
 satisfied when both `dn1` and `dn2` are empty, as in the case of a base
@@ -14,7 +14,7 @@ function Base.isequal(dn1::DataNode, dn2::DataNode)::Bool
 end
 
 """
-`Base.isequal{T<:QueryNode}(q1::T, q2::T)::Bool`
+    Base.isequal{T<:QueryNode}(q1::T, q2::T)::Bool
 
 Test two `QueryNode` objects for equality.
 
@@ -32,7 +32,7 @@ function Base.isequal{T<:QueryNode}(q1::T, q2::T)::Bool
 end
 
 """
-`Base.isequal{T<:JoinNode}(q1::T, q2::T)::Bool`
+    Base.isequal{T<:JoinNode}(q1::T, q2::T)::Bool
 
 Test two `JoinNode` objects for equality.
 
@@ -47,8 +47,6 @@ function Base.isequal{T<:JoinNode}(q1::T, q2::T)::Bool
     return true
 end
 
-"""
-"""
 source(q::QueryNode) = source(q.input)
 source(q::JoinNode) = (source(q.input1), source(q.input2))
 source(d::DataNode) = d.input

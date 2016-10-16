@@ -15,40 +15,30 @@ end
 
 # One-table verbs
 
-"""
-"""
 immutable SelectNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
     helpers::Vector{SelectHelper}
 end
 
-"""
-"""
 immutable FilterNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
     helpers::Vector{FilterHelper}
 end
 
-"""
-"""
 immutable GroupbyNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
     helpers::Vector{GroupbyHelper}
 end
 
-"""
-"""
 immutable SummarizeNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
     helpers::Vector{SummarizeHelper}
 end
 
-"""
-"""
 immutable OrderbyNode <: QueryNode
     input::QueryNode
     args::Vector{QueryArg}
@@ -57,8 +47,6 @@ end
 
 # Two-table verbs
 
-"""
-"""
 immutable LeftJoinNode <: JoinNode
     input1::QueryNode
     input2::QueryNode
@@ -66,8 +54,6 @@ immutable LeftJoinNode <: JoinNode
     helpers::Vector{LeftJoinHelper}
 end
 
-"""
-"""
 immutable OuterJoinNode <: JoinNode
     input1::QueryNode
     input2::QueryNode
@@ -75,8 +61,6 @@ immutable OuterJoinNode <: JoinNode
     helpers::Vector{OuterJoinHelper}
 end
 
-"""
-"""
 immutable InnerJoinNode <: JoinNode
     input1::QueryNode
     input2::QueryNode
@@ -84,8 +68,6 @@ immutable InnerJoinNode <: JoinNode
     helpers::Vector{InnerJoinHelper}
 end
 
-"""
-"""
 immutable CrossJoinNode <: JoinNode
     input1::QueryNode
     input2::QueryNode

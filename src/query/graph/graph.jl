@@ -1,5 +1,8 @@
 """
-    StructuredQueries.QUERYNODE
+    QUERYNODE
+
+Internal map from manipulation verb names (as `Symbol`s) to tuples
+`(T<:QueryNode, H<:QueryHelper)`.
 """
 const QUERYNODE = Dict{Symbol, Tuple{DataType, DataType}}(
     :select => (SelectNode, SelectHelper),
@@ -19,7 +22,12 @@ const QUERYNODE = Dict{Symbol, Tuple{DataType, DataType}}(
 _leaf(x) = DataNode(x)
 _leaf(q::Query) = q.graph
 
-gen_graph_ex(qry) = gen_graph_ex(qry, false)
+"""
+    gen_graph_ex(qry)::Expr
+
+Return an `Expr` to produce a graph representation of `qry`.
+"""
+gen_graph_ex(qry)::Expr = gen_graph_ex(qry, false)
 gen_graph_ex(src::Symbol, piped_to) =
     Expr(:call, :(StructuredQueries._leaf), esc(src))
 
@@ -40,6 +48,13 @@ function gen_graph_ex(ex::Expr, piped_to)
     end
 end
 
+"""
+    gen_node_ex{T}(::Type{T}, H, args, piped_to)
+
+Return an `Expr` to produce a `QueryNode` based on a verb
+(corresponding to `T`)/arguments (corresponding to `args`) from a query
+expression `qry` in `@query qry`.
+"""
 function gen_node_ex{T<:QueryNode}(::Type{T}, H, _args, piped_to)
     if !piped_to # first argument is an input
         input = _args[1]

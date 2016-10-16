@@ -13,5 +13,17 @@ function Base.isequal(qry1::Query, qry2::Query)::Bool
     return true
 end
 
+"""
+    source(q::Query)
+
+Return the data source(s) against which `q` is to be collected.
+"""
 source(q::Query) = source(q.graph)
+
+# TODO: Better wording of the following
+"""
+    graph(q::Query)
+
+Return the `QueryNode` graph representation of the query that produced `q`.
+"""
 graph(q::Query) = q.graph

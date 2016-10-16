@@ -10,6 +10,7 @@
 ```@contents
 Pages = [
     "man/guide.md",
+    "man/syntax.md",
     "man/extension.md",
     "man/examples.md"
 ]
@@ -23,5 +24,4 @@ Pages = [
     "lib/public.md",
     "lib/internals.md"
 ]
-Depth = 1
 ```

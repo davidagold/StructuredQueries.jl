@@ -1,4 +1,9 @@
 """
+    build_kernel_ex!(e, paramters)
+
+Return an `Expr` to define a (tuple-argument) lambda whose body reflects the
+structure of `e`. Also push any query parameters found while traversing `e`
+to `parameters`.
 """
 function build_kernel_ex!(e::Any, parameters::Set{Symbol})
     tuple_name = gensym()
