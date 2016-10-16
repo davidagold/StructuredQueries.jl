@@ -27,3 +27,10 @@ makedocs(
         ]
     ]
 )
+
+deploydocs(
+    repo = "github.com/davidagold/StructuredQueries.jl.git",
+    target = "site",
+    deps = nothing,
+    make = nothing,
+)
