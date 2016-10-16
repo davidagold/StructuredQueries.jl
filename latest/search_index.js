@@ -29,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Manual Outline",
     "category": "section",
-    "text": "Pages = [\n    \"man/guide.md\",\n    \"man/syntax.md\",\n    \"man/extension.md\",\n    \"man/examples.md\"\n]\nDepth = 1"
+    "text": "Pages = [\n    \"man/guide.md\",\n    \"man/examples.md\"\n]\nDepth = 1"
 },
 
 {
