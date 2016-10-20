@@ -4,6 +4,7 @@
 
 [![Project Status: WIP - Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](http://www.repostatus.org/badges/latest/wip.svg)](http://www.repostatus.org/#wip) [![Build Status](https://travis-ci.org/davidagold/StructuredQueries.jl.svg?branch=master)](https://travis-ci.org/davidagold/StructuredQueries.jl)
 [![StructuredQueries](http://pkg.julialang.org/badges/StructuredQueries_0.5.svg)](http://pkg.julialang.org/?pkg=StructuredQueries)
+[![StructuredQueries](http://pkg.julialang.org/badges/StructuredQueries_0.6.svg)](http://pkg.julialang.org/?pkg=StructuredQueries)
 [![codecov](https://codecov.io/gh/davidagold/StructuredQueries.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/davidagold/StructuredQueries.jl)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://davidagold.github.io/StructuredQueries.jl/stable)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://davidagold.github.io/StructuredQueries.jl/latest)
