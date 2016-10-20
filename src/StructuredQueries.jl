@@ -1,5 +1,7 @@
 module StructuredQueries
 
+using Compat
+
 export  Query,
         @query,
         @collect,

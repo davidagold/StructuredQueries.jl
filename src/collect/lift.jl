@@ -1,17 +1,3 @@
-# TODO: Move this to Compat.jl
-if VERSION < v"0.6.0-dev.848"
-    unsafe_get(x::Nullable) = x.value
-    unsafe_get(x) = x
-    Base.isnull(x) = false
-end
-
-# handle julia#18510
-if VERSION < v"0.6.0-dev.826"
-    _field2(x) = x
-else
-    _field2(x) = !x
-end
-
 # Base.null_safe_op is not defined on v0.5
 if VERSION < v"0.6.0-dev.0"
     # TODO: Find parsimonious way to support null_safe_op optimizations on 0.5
@@ -31,7 +17,7 @@ end
 
 @inline function lift(f, x)
     if null_safe_op(f, typeof(x))
-        return Nullable(f(x.value), _field2(isnull(x)))
+        return @compat Nullable(f(x.value), !isnull(x))
     else
         U = Core.Inference.return_type(f, Tuple{eltype(typeof(x))})
         if isnull(x)
@@ -44,9 +30,8 @@ end
 
 @inline function lift(f, x1, x2)
     if null_safe_op(f, typeof(x1), typeof(x2))
-        return Nullable(
-            f(x1.value, x2.value),
-            _field2(isnull(x1) | isnull(x2))
+        return @compat Nullable(
+            f(x1.value, x2.value), !(isnull(x1) | isnull(x2))
         )
     else
         U = Core.Inference.return_type(
@@ -62,9 +47,8 @@ end
 
 @inline function lift(f, xs...)
     if null_safe_op(f, map(typeof, xs)...)
-        return Nullable(
-            f(map(unsafe_get, xs)...),
-            _field2(mapreduce(isnull, |, xs))
+        return @compat Nullable(
+            f(map(unsafe_get, xs)...), !(mapreduce(isnull, |, xs))
         )
     else
         U = Core.Inference.return_type(
