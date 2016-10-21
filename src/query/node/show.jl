@@ -19,10 +19,10 @@ function Base.show(io::IO, q::JoinNode, leftmargin=0)::Void
         pad(io, leftmargin+6); println(io, "$i)  ", arg)
     end
     pad(io, leftmargin+2); println(io, "inputs:")
-    pad(io, leftmargin+6); print(io, "1)  ")
-    show(io, q.input1, leftmargin+10)
-    pad(io, leftmargin+6); print(io, "2)  ")
-    show(io, q.input2, leftmargin+10)
+    for (i, input) in enumerate(q.inputs)
+        pad(io, leftmargin+6); print(io, "$i)  ")
+        show(io, input, leftmargin+10)
+    end
     return
 end
 

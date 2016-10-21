@@ -98,32 +98,39 @@ src2 = MyData()
 
 # leftjoin
 
-q_a = @query leftjoin(src1, src2, A = B)
-q_b = @query src1 |> leftjoin(src2, A = B)
+q_a = @query leftjoin(src1, src2, A == B)
+q_b = @query src1 |> leftjoin(src2, A == B)
 @test isequal(q_a, q_b)
 show(io, q_a)
 display(disp, q_a)
 
 # outerjoin
 
-q_a = @query outerjoin(src1, src2, A = B)
-q_b = @query src1 |> outerjoin(src2, A = B)
+q_a = @query outerjoin(src1, src2, A == B)
+q_b = @query src1 |> outerjoin(src2, A == B)
 @test isequal(q_a, q_b)
 show(io, q_a)
 display(disp, q_a)
 
 # innerjoin
 
-q_a = @query innerjoin(src1, src2, A = B)
-q_b = @query src1 |> innerjoin(src2, A = B)
+q_a = @query innerjoin(src1, src2, A == B)
+q_b = @query src1 |> innerjoin(src2, A == B)
 @test isequal(q_a, q_b)
 show(io, q_a)
 display(disp, q_a)
 
+q3 = @query join(src1, src2, A == B)
+q4 = @query src1 |> join(src2, A ==B)
+@test isequal(q_b, q3)
+@test isequal(q3, q4)
+show(io, q3)
+display(disp, q3)
+
 # crossjoin
 
-q_a = @query crossjoin(src1, src2, A = B)
-q_b = @query src1 |> crossjoin(src2, A = B)
+q_a = @query crossjoin(src1, src2, A == B)
+q_b = @query src1 |> crossjoin(src2, A == B)
 @test isequal(q_a, q_b)
 show(io, q_a)
 display(disp, q_a)

@@ -36,7 +36,7 @@ tbl1, tbl2 = MyData(), MyData()
 
 q = @query tbl1 |>
     select(A, B) |>
-    leftjoin(filter(tbl2, C > .5), A = B) |>
+    leftjoin(filter(tbl2, C > .5), A == B) |>
     groupby(D) |>
     summarize(avg = mean(E))
 @test source(q) === (tbl1, tbl2)
@@ -46,7 +46,7 @@ display(disp, graph(q))
 
 q = @query tbl1 |>
     select(A, B) |>
-    leftjoin(filter(tbl2, C > .5), A = B) |>
+    leftjoin(filter(tbl2, C > .5), A == B) |>
     groupby(D) |>
     crossjoin(tbl1)
 @test source(q) === ((tbl1, tbl2), tbl1)

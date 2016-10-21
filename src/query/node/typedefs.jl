@@ -48,29 +48,25 @@ end
 # Two-table verbs
 
 immutable LeftJoinNode <: JoinNode
-    input1::QueryNode
-    input2::QueryNode
+    inputs::Tuple{Vararg{QueryNode}}
     args::Vector{QueryArg}
     helpers::Vector{LeftJoinHelper}
 end
 
 immutable OuterJoinNode <: JoinNode
-    input1::QueryNode
-    input2::QueryNode
+    inputs::Tuple{Vararg{QueryNode}}
     args::Vector{QueryArg}
     helpers::Vector{OuterJoinHelper}
 end
 
 immutable InnerJoinNode <: JoinNode
-    input1::QueryNode
-    input2::QueryNode
+    inputs::Tuple{Vararg{QueryNode}}
     args::Vector{QueryArg}
     helpers::Vector{InnerJoinHelper}
 end
 
 immutable CrossJoinNode <: JoinNode
-    input1::QueryNode
-    input2::QueryNode
+    inputs::Tuple{Vararg{QueryNode}}
     args::Vector{QueryArg}
     helpers::Vector{CrossJoinHelper}
 end

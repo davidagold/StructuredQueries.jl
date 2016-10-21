@@ -41,12 +41,11 @@ and `q2`; the contents of the `helpers` and `parameters` fields are not
 compared.
 """
 function Base.isequal{T<:JoinNode}(q1::T, q2::T)::Bool
-    isequal(q1.input1, q2.input2) || return false
-    isequal(q1.input2, q2.input2) || return false
+    isequal(q1.inputs, q2.inputs) || return false
     isequal(q1.args, q2.args) || return false
     return true
 end
 
 source(q::QueryNode) = source(q.input)
-source(q::JoinNode) = (source(q.input1), source(q.input2))
+source(q::JoinNode) = tuple([source(input) for input in q.inputs]...)
 source(d::DataNode) = d.input

@@ -16,7 +16,8 @@ const QUERYNODE = Dict{Symbol, Tuple{DataType, DataType}}(
     :leftjoin => (LeftJoinNode, LeftJoinHelper),
     :outerjoin => (OuterJoinNode, OuterJoinHelper),
     :innerjoin => (InnerJoinNode, InnerJoinHelper),
-    :crossjoin => (CrossJoinNode, CrossJoinHelper)
+    :join => (InnerJoinNode, InnerJoinHelper),
+    :crossjoin => (CrossJoinNode, CrossJoinHelper),
 )
 
 _leaf(x) = DataNode(x)
@@ -77,7 +78,7 @@ function gen_node_ex{T<:JoinNode}(::Type{T}, H, _args, piped_to)
         args = _args[3:end]
         return Expr(
             :call, T,
-            gen_graph_ex(input1, false), gen_graph_ex(input2, false),
+            Expr(:tuple, gen_graph_ex(input1, false), gen_graph_ex(input2, false)),
             args,
             gen_helpers_ex(H, args)
         )
@@ -86,7 +87,7 @@ function gen_node_ex{T<:JoinNode}(::Type{T}, H, _args, piped_to)
         args = _args[2:end]
         return x -> Expr(
             :call, T,
-            x, gen_graph_ex(input2, false),
+            Expr(:tuple, x, gen_graph_ex(input2, false)),
             args,
             gen_helpers_ex(H, args)
         )
