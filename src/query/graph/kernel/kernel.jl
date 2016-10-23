@@ -2,19 +2,16 @@
     build_kernel_ex!(e, paramters)
 
 Return an `Expr` to define a (tuple-argument) lambda whose body reflects the
-structure of `e`. Also push any query parameters found while traversing `e`
-to `parameters`.
+structure of `e`.
 """
-function build_kernel_ex!(e::Any, parameters::Set{Symbol})
-    tuple_name = gensym()
-    s, _parameters = find_symbols(e)
-    for p in _parameters
-        push!(parameters, p)
-    end
-    mapping, reverse_mapping = map_symbols(s)
-    body_ex = replace_symbols(e, mapping, tuple_name)
-    return (
-        Expr(:->, tuple_name, Expr(:block, body_ex)),
-        reverse_mapping,
-    )
+# function build_f_ex!(ex::Any, ds, index)::Tuple{Expr, Dict{Symbol, Vector{Symbol}}}
+function build_f_ex!(ds, srcs, ex::Any, index)
+    # tuple_name = gensym()
+    # srcs = Set{Symbol}()
+    find_symbols!(ds, srcs, ex, index)
+    maps, reverse_maps = map_symbols(ds)
+    args_ex = Expr(:tuple)
+    args_ex.args = [ token for token in keys(maps) ]
+    body_ex = replace_symbols(ex, maps)
+    return Expr(:->, args_ex, Expr(:block, body_ex)), reverse_maps
 end

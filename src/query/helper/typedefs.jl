@@ -6,6 +6,12 @@ and stored in fields of `T` as resources for collection machineries.
 """
 abstract QueryHelper
 
+immutable Helper{V} <: QueryHelper
+    parts
+end
+
+
+
 abstract JoinHelper <: QueryHelper
 
 immutable SelectHelper{F} <: QueryHelper
@@ -16,7 +22,7 @@ end
 
 immutable FilterHelper{F} <: QueryHelper
     f::F
-    arg_fields::Vector{Symbol}
+    arg_fields
 end
 
 immutable OrderbyHelper{F} <: QueryHelper
@@ -27,7 +33,7 @@ end
 immutable GroupbyHelper{F} <: QueryHelper
     is_predicate::Bool
     f::F
-    arg_fields::Vector{Symbol}
+    arg_fields
 end
 
 immutable SummarizeHelper{F, G} <: QueryHelper

@@ -13,6 +13,13 @@ immutable DataNode{T} <: QueryNode
     input::T
 end
 
+immutable Node{V} <: QueryNode
+    inputs::Tuple{Vararg{QueryNode}}
+    args::Vector{QueryArg}
+    # helpers::Vector{Helper{V}}
+    helpers::Vector{QueryHelper}
+end
+
 # One-table verbs
 
 immutable SelectNode <: QueryNode
@@ -22,7 +29,8 @@ immutable SelectNode <: QueryNode
 end
 
 immutable FilterNode <: QueryNode
-    input::QueryNode
+    # inputs::NTuple{N, QueryNode}
+    inputs
     args::Vector{QueryArg}
     helpers::Vector{FilterHelper}
 end

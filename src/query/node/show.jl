@@ -1,18 +1,18 @@
 pad(io, n)::Void = print(io, " "^n)
 
-function Base.show(io::IO, q::QueryNode, leftmargin=0)::Void
-    println(io, name(typeof(q)))
-    pad(io, leftmargin+2); println(io, "arguments:")
-    for (i, arg) in enumerate(q.args)
-        pad(io, leftmargin+6); println(io, "$i)  ", arg)
-    end
-    pad(io, leftmargin+2); println(io, "inputs:")
-    pad(io, leftmargin+6); print(io, "1)  ")
-    show(io, q.input, leftmargin+10)
-    return
-end
+# function Base.show(io::IO, q::QueryNode, leftmargin=0)::Void
+#     println(io, name(typeof(q)))
+#     pad(io, leftmargin+2); println(io, "arguments:")
+#     for (i, arg) in enumerate(q.args)
+#         pad(io, leftmargin+6); println(io, "$i)  ", arg)
+#     end
+#     pad(io, leftmargin+2); println(io, "inputs:")
+#     pad(io, leftmargin+6); print(io, "1)  ")
+#     show(io, q.input, leftmargin+10)
+#     return
+# end
 
-function Base.show(io::IO, q::JoinNode, leftmargin=0)::Void
+function Base.show(io::IO, q::QueryNode, leftmargin=0)::Void
     println(io, name(typeof(q)))
     pad(io, leftmargin+2); println(io, "arguments:")
     for (i, arg) in enumerate(q.args)
@@ -39,5 +39,6 @@ function Base.show(io::IO, d::DataNode, leftmargin)::Void
 end
 
 name(x::Symbol) = x
-name(x::DataType) = name(x.name)
-name(x::TypeName) = x.name
+name(x::DataType) = name(x.name, x.parameters)
+name(x::TypeName, parameters) =
+    length(parameters) > 0 ? string(x.name, "{:$(parameters[1])}") : string(x.name)

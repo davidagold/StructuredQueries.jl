@@ -5,6 +5,7 @@ using Compat
 export  Query,
         @query,
         @collect,
+        @with,
         source,
         graph
 

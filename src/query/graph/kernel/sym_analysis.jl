@@ -15,30 +15,34 @@ Returns:
 
 * Void: This function is used exclusively to mutate the argument `s`.
 """
-function find_symbols!(s::Set{Symbol}, p::Set{Symbol}, e::Any)::Void
+function find_symbols!(
+    ds::Dict{Symbol, Set{Symbol}}, srcs::Set{Symbol}, e::Any,
+    index::Dict{Symbol, Symbol},
+)::Void
     if isa(e, Expr)
-        # NOTE: Do not descend when e.head == :quote
         if e.head == :call
-            # Ignore e.args[1], which specifies a function name that won't
-            # ever need to be resolved into one of the table's columns.
+            # ignore e.args[1], which cannot be a token-field ref
             for i in 2:length(e.args)
-                find_symbols!(s, p, e.args[i])
+                find_symbols!(ds, srcs, e.args[i], index)
             end
-        elseif e.head in (:(||), :(&&))
+        elseif e.head in (:(||), :(&&), :if)
             for i in 1:length(e.args)
-                find_symbols!(s, p, e.args[i])
+                find_symbols!(ds, srcs, e.args[i], index)
             end
-        elseif e.head == :$
-            push!(p, e.args[1])
+        elseif e.head == :.
+            _token, _field = e.args[1], e.args[2]
+            field = _field.args[1] # field comes wrapped in an Expr with head :quote
+            if haskey(index, _token)
+                s = Set{Symbol}() # Create a set s to hold the fields
+                push!(s, field)
+                ds[_token] = s # map token to s
+                push!(srcs, index[_token]) # remember sources we need
+            end
+        else
+            # NOTE: Do not descend when e is a QuoteNode.
         end
-        return
-    elseif isa(e, Symbol)
-        push!(s, e)
-        return
-    else
-        # NOTE: Do not descend when e is a QuoteNode.
-        return
     end
+    return
 end
 
 """
@@ -55,11 +59,10 @@ Returns:
 * s::Set{Symbol}: A set containing all of the symbols found by descending
     through the expression-like object's AST.
 """
-function find_symbols(e)::Tuple{Set{Symbol}, Set{Symbol}}
-    s = Set{Symbol}()
-    p = Set{Symbol}()
-    find_symbols!(s, p, e)
-    return s, p
+function find_symbols(e, index)::Dict{Symbol, Set{Symbol}}
+    ds = Dict{Symbol, Set{Symbol}}()
+    find_symbols!(ds, e)
+    return ds
 end
 
 """
@@ -75,16 +78,27 @@ Returns:
 * mapping::Dict{Symbol, Int}: A mapping from symbols to indices.
 * reverse_mapping::Vector{Symbol}: A mapping from indices to symbols.
 """
-function map_symbols(s::Set{Symbol})::Tuple{Dict{Symbol, Int}, Vector{Symbol}}
-    mapping = Dict{Symbol, Int}()
-    reverse_mapping = Array(Symbol, length(s))
+function map_symbols(
+        ds::Dict{Symbol, Set{Symbol}}
+)::Tuple{Dict{Symbol, Dict{Symbol, Int}}, Dict{Symbol, Vector{Symbol}}}
 
-    for (i, sym) in enumerate(s)
-        mapping[sym] = i
-        reverse_mapping[i] = sym
+    # @show ds
+
+    smaps = Dict{Symbol, Dict{Symbol, Int}}()
+    reverse_smaps = Dict{Symbol, Vector{Symbol}}()
+
+    for token in collect(keys(ds))
+        mapping = Dict{Symbol, Int}()
+        s = ds[token]
+        reverse_mapping = Array(Symbol, length(s))
+        for (i, sym) in enumerate(s)
+            mapping[sym] = i
+            reverse_mapping[i] = sym
+        end
+        smaps[token] = mapping
+        reverse_smaps[token] = reverse_mapping
     end
-
-    return mapping, reverse_mapping
+    return smaps, reverse_smaps
 end
 
 
@@ -105,9 +119,9 @@ Returns:
 """
 function replace_symbols(
     e::Any,
-    mapping::Dict{Symbol, Int},
-    tuple_name::Symbol,
+    smaps::Dict{Symbol, Dict{Symbol, Int}}
 )::Any
+    # @show smaps
     if isa(e, Expr)
         # To ensure purity, we copy any Expr objects rather than mutate them.
         new_e = copy(e)
@@ -123,11 +137,7 @@ function replace_symbols(
             for i in 2:length(args_copy)
                 push!(
                     lifted_e.args,
-                    replace_symbols(
-                        args_copy[i],
-                        mapping,
-                        tuple_name
-                    )
+                    replace_symbols(args_copy[i], smaps)
                 )
             end
             return lifted_e
@@ -136,13 +146,20 @@ function replace_symbols(
             return esc(new_e)
         elseif new_e.head == :$
             return esc(new_e.args[1])
-        elseif new_e.head in (:(||), :(&&))
+        elseif new_e.head in (:(||), :(&&), :if)
             for i in 1:length(new_e.args)
                 new_e.args[i] = replace_symbols(
                     new_e.args[i],
-                    mapping,
-                    tuple_name,
+                    mapping
                 )
+            end
+        elseif e.head == :.
+            token, _field = e.args[1], e.args[2]
+            field = _field.args[1] # field comes wrapped in Expr with head :quote
+            if haskey(smaps, token)
+                return Expr(:ref, token, smaps[token][field])
+            else
+                return e
             end
         else
             # TODO: Handle other kinds of Expr heads.
@@ -151,9 +168,9 @@ function replace_symbols(
             )
         end
         return new_e
-    elseif isa(e, Symbol)
-        # Replace unquoted symbols with tuple indexing expressions.
-        return Expr(:ref, tuple_name, mapping[e])
+    # elseif isa(e, Symbol)
+    #     # Replace unquoted symbols with tuple indexing expressions.
+    #     return Expr(:ref, tuple_name, mapping[e])
     # elseif isa(e, QuoteNode)
     #     # Replace quoted symbols with raw symbols.
     #     return e.value
