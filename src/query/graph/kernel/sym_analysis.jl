@@ -33,9 +33,8 @@ function find_symbols!(
             _token, _field = e.args[1], e.args[2]
             field = _field.args[1] # field comes wrapped in an Expr with head :quote
             if haskey(index, _token)
-                s = Set{Symbol}() # Create a set s to hold the fields
+                s = get!(ds, _token, Set{Symbol}()) # Create a set s to hold the fields
                 push!(s, field)
-                ds[_token] = s # map token to s
                 push!(srcs, index[_token]) # remember sources we need
             end
         else
@@ -82,8 +81,6 @@ function map_symbols(
         ds::Dict{Symbol, Set{Symbol}}
 )::Tuple{Dict{Symbol, Dict{Symbol, Int}}, Dict{Symbol, Vector{Symbol}}}
 
-    # @show ds
-
     smaps = Dict{Symbol, Dict{Symbol, Int}}()
     reverse_smaps = Dict{Symbol, Vector{Symbol}}()
 
@@ -121,7 +118,6 @@ function replace_symbols(
     e::Any,
     smaps::Dict{Symbol, Dict{Symbol, Int}}
 )::Any
-    # @show smaps
     if isa(e, Expr)
         # To ensure purity, we copy any Expr objects rather than mutate them.
         new_e = copy(e)
