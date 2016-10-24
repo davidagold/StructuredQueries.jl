@@ -5,7 +5,7 @@ const DEALIAS = Dict{Symbol, Symbol}(
 # NOTE: FilterHelper has its own implementation in filter.jl
 """
 """
-function process_args{V}(::Val{V}, exs, index)
+function process_args{V}(::Val{V}, exs, index)::Tuple{Set{Symbol}, Expr}
     U = get(DEALIAS, V, V)
     helpers_ex = Expr(:ref, Helper{U})
     # Each source gets its own symbol set, which we use to build the

@@ -5,7 +5,7 @@ Return an `Expr` to define a (tuple-argument) lambda whose body reflects the
 structure of `e`.
 """
 # function build_f_ex!(ex::Any, ds, index)::Tuple{Expr, Dict{Symbol, Vector{Symbol}}}
-function build_f_ex!(srcs_used, ex::Any, index)
+function build_f_ex!(srcs_used, ex::Any, index)::Tuple{Expr, Dict{Symbol, Vector{Symbol}}}
     # tuple_name = gensym()
     # srcs = Set{Symbol}()
     ds = Dict{Symbol, Set{Symbol}}()

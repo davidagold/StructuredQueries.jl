@@ -4,8 +4,8 @@ function process_arg!(
     # NOTE: Only equijoins are supported for now
     @assert ex.head == :call && ex.args[1] == :(==)
     lhs, rhs = ex.args[2], ex.args[3]
-    f_ex1, arg_fields1 = build_f_ex!(Dict{Symbol, Set{Symbol}}(), srcs_used, lhs, index)
-    f_ex2, arg_fields2 = build_f_ex!(Dict{Symbol, Set{Symbol}}(), srcs_used, rhs, index)
+    f_ex1, arg_fields1 = build_f_ex!(srcs_used, lhs, index)
+    f_ex2, arg_fields2 = build_f_ex!(srcs_used, rhs, index)
     push!(
         helpers_ex.args,
         Expr(
