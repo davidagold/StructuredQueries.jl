@@ -46,6 +46,13 @@ function Base.isequal{T<:JoinNode}(q1::T, q2::T)::Bool
     return true
 end
 
-source(q::QueryNode) = source(q.input)
-source(q::JoinNode) = tuple([source(input) for input in q.inputs]...)
-source(d::DataNode) = d.input
+function source(q::QueryNode)
+    inputs = q.inputs
+    if length(inputs) > 1
+        return tuple([ source(input) for input in inputs ]...)
+    else
+        return source(first(inputs))
+    end
+end
+# source(q::JoinNode) = tuple([source(input) for input in q.inputs]...)
+source(d::DataNode) = (d.input,)

@@ -10,11 +10,13 @@ function result_column(e::Expr)::Tuple{QuoteNode, Expr}
         # end
         # TODO: check arguments for validity
         lhs, value_ex = e.args[1], e.args[2]
-        if lhs.head == :.
+        if isa(lhs, Expr) && lhs.head == :.
             token, _res_field = lhs.args[1], lhs.args[2]
             # _res_field is a :quote Expr. Also, wrap in QuoteNode so it doesn't
             # get eval'd
             res_field = QuoteNode(_res_field.args[1])
+        elseif isa(lhs, Symbol)
+            res_field = QuoteNode(lhs)
         end
     elseif e.head == :.
         token, _res_field = e.args[1], e.args[2]

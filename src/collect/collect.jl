@@ -6,5 +6,5 @@ Collect a `qry` against the source wrapped in the base `DataNode` of
 """
 Base.collect(q::Query) = collect(_collect(q.graph))
 
-_collect(d::DataNode) = d.input
-_collect(q::QueryNode) = _collect(_collect(q.input), q)
+_collect(d::Tuple{DataNode}) = (d[1].input,)
+_collect(q::QueryNode) = _collect(_collect(q.inputs), q)
