@@ -114,9 +114,11 @@ Returns:
 * new_e::Any: A new AST-like object with all symbols replaced with
     tuple-indexing operations.
 """
-function replace_symbols(
+function replace_symbols!(
+    arg_tokens::Set{Symbol},
     e::Any,
-    smaps::Dict{Symbol, Dict{Symbol, Int}}
+    index
+    # smaps::Dict{Symbol, Dict{Symbol, Int}}
 )::Any
     if isa(e, Expr)
         # To ensure purity, we copy any Expr objects rather than mutate them.
@@ -133,30 +135,32 @@ function replace_symbols(
             for i in 2:length(args_copy)
                 push!(
                     lifted_e.args,
-                    replace_symbols(args_copy[i], smaps)
+                    replace_symbols!(arg_tokens, args_copy[i], index)
                 )
             end
             return lifted_e
-        elseif new_e.head == :quote
-            # Just escape the expression
-            return esc(new_e)
-        elseif new_e.head == :$
-            return esc(new_e.args[1])
+        # elseif new_e.head == :quote
+        #     # Just escape the expression
+        #     return esc(new_e)
+        # elseif new_e.head == :$
+        #     return esc(new_e.args[1])
         elseif new_e.head in (:(||), :(&&), :if)
             for i in 1:length(new_e.args)
-                new_e.args[i] = replace_symbols(
-                    new_e.args[i],
-                    mapping
-                )
+                new_e.args[i] = replace_symbols!(arg_tokens, new_e.args[i], index)
             end
         elseif e.head == :.
-            token, _field = e.args[1], e.args[2]
-            field = _field.args[1] # field comes wrapped in Expr with head :quote
-            if haskey(smaps, token)
-                return Expr(:ref, token, smaps[token][field])
-            else
-                return e
+            _token = new_e.args[1]
+            if haskey(index, _token)
+                push!(arg_tokens, _token)
             end
+            return new_e
+            # token, _field = e.args[1], e.args[2]
+            # field = _field.args[1] # field comes wrapped in Expr with head :quote
+            # if haskey(smaps, token)
+            #     return Expr(:ref, token, smaps[token][field])
+            # else
+            #     return e
+            # end
         else
             # TODO: Handle other kinds of Expr heads.
             error(

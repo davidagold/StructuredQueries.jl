@@ -29,6 +29,7 @@ function process_args!(stash, join_hist, ::Val{:filter}, exs, index)::Tuple{Expr
     late_filter_helpers_ex = Expr(:ref, Helper{:filter})
 
     for ex in exs
+        # look for equijoins
         if ex.head == :call && ex.args[1] == :(==)
             verb, srcs_used, helper_ex = join_or_filter(ex, join_hist, index)
             if verb == :join
@@ -51,8 +52,8 @@ function process_args!(stash, join_hist, ::Val{:filter}, exs, index)::Tuple{Expr
             end
         else # definitely a filter -- is it early or late?
             srcs_used = Set{Symbol}()
-            f_ex, arg_fields = build_f_ex!(srcs_used, ex, index)
-            helper_ex = Expr(:call, Helper{:filter}, Expr(:tuple, f_ex, arg_fields))
+            f_ex = build_f_ex!(srcs_used, ex, index)
+            helper_ex = Expr(:call, Helper{:filter}, Expr(:tuple, f_ex))
             # check if the srcs_used have previously been joined, since this determines
             # whether the filter is early or late
             unique_src_hists = unique([ join_hist[src] for src in srcs_used ])
@@ -61,6 +62,10 @@ function process_args!(stash, join_hist, ::Val{:filter}, exs, index)::Tuple{Expr
                     early_filters, first(unique_src_hists),
                     (Vector{Expr}(), Vector{Expr}())
                 )
+                # _args = get!(
+                #     early_filters, first(unique_src_hists),
+                #     (Vector{Expr}())
+                # )
                 union!(early_srcs_used, srcs_used)
                 push!(_args, ex)
                 push!(_helper_exs, helper_ex)
@@ -78,10 +83,13 @@ function process_args!(stash, join_hist, ::Val{:filter}, exs, index)::Tuple{Expr
         # TODO: handle case where multipe src_hists (what should that behavior be?
         #       It should probably just error -- maybe we need a principle, that
         #       each manipulation verb must only return a single table)
-        @assert length(keys(early_filters)) == 1
+        # @assert length(keys(early_filters)) == 1
+
         src_hist = first(keys(early_filters))
         push!(src_nodes_ex.args, stash[src_hist])
         args, helper_exs = early_filters[src_hist]
+        # args = early_filter_args[src_hist]
+
         helpers_ex = Expr(:ref, Helper{:filter}, helper_exs...)
         early_filter_node_ex = Expr(
             :call, Node{:filter}, src_nodes_ex, args, helpers_ex
@@ -152,9 +160,9 @@ function join_or_filter(ex, join_hist, index)::Tuple{Symbol, Set{Symbol}, Expr}
     # or one side refers to no sources (just literals or names from enclosing scope)
     if length(src_hists1) * length(src_hists2) == 0 # filter
         srcs_used = Set{Symbol}()
-        f_ex, arg_fields = build_f_ex!(srcs_used, ex, index)
+        f_ex = build_f_ex!(srcs_used, ex, index)
         return :filter, srcs_used,
-               Expr(:call, Helper{:filter}, Expr(:tuple, f_ex, arg_fields))
+               Expr(:call, Helper{:filter}, Expr(:tuple, f_ex))
     else # join
         return :join, union(srcs_used1, srcs_used2),
             Expr(

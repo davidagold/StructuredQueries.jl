@@ -56,3 +56,5 @@ function source(q::QueryNode)
 end
 # source(q::JoinNode) = tuple([source(input) for input in q.inputs]...)
 source(d::DataNode) = (d.input,)
+
+helpers(q::QueryNode) = q.helpers

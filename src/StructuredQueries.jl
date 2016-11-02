@@ -54,8 +54,8 @@ include("query/graph/kernel/kernel.jl")
 ##############################################################################
 
 # collect API
-include("collect/utils.jl")
-include("collect/collect.jl")
+# include("collect/utils.jl")
+# include("collect/collect.jl")
 include("collect/lift.jl")
 
 end # module StructuredQueries
