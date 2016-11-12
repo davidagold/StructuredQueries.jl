@@ -37,8 +37,3 @@ function Base.show(io::IO, d::DataNode, leftmargin)::Void
     end
     return
 end
-
-name(x::Symbol) = x
-name(x::DataType) = name(x.name, x.parameters)
-name(x::TypeName, parameters) =
-    length(parameters) > 0 ? string(x.name, "{:$(parameters[1])}") : string(x.name)

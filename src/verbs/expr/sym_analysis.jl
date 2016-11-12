@@ -115,7 +115,7 @@ Returns:
     tuple-indexing operations.
 """
 function replace_symbols!(
-    arg_tokens::Set{Symbol},
+    ai::ArgsIndex,
     e::Any,
     index
     # smaps::Dict{Symbol, Dict{Symbol, Int}}
@@ -135,23 +135,21 @@ function replace_symbols!(
             for i in 2:length(args_copy)
                 push!(
                     lifted_e.args,
-                    replace_symbols!(arg_tokens, args_copy[i], index)
+                    replace_symbols!(ai, args_copy[i], index)
                 )
             end
             return lifted_e
-        # elseif new_e.head == :quote
-        #     # Just escape the expression
-        #     return esc(new_e)
-        # elseif new_e.head == :$
-        #     return esc(new_e.args[1])
         elseif new_e.head in (:(||), :(&&), :if)
             for i in 1:length(new_e.args)
-                new_e.args[i] = replace_symbols!(arg_tokens, new_e.args[i], index)
+                new_e.args[i] = replace_symbols!(ai, new_e.args[i], index)
             end
         elseif e.head == :.
             _token = new_e.args[1]
+            _arg = new_e.args[2]
             if haskey(index, _token)
-                push!(arg_tokens, _token)
+                arg = _arg.args[1]
+                s = get!(ai, _token)
+                push!(s, arg)
             end
             return new_e
             # token, _field = e.args[1], e.args[2]
@@ -168,6 +166,10 @@ function replace_symbols!(
             )
         end
         return new_e
+    elseif isa(e, Symbol)
+        if haskey(index, e)
+            s = get!(ai, e)
+        end
     # elseif isa(e, Symbol)
     #     # Replace unquoted symbols with tuple indexing expressions.
     #     return Expr(:ref, tuple_name, mapping[e])

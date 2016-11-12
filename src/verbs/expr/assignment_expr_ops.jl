@@ -1,6 +1,6 @@
-function result_column(e::Symbol)::Tuple{QuoteNode, Any}
-    return QuoteNode(e), e
-end
+# function result_column(e::Symbol)::Tuple{QuoteNode, Any}
+#     return QuoteNode(e), e
+# end
 
 function result_column(e::Expr)::Tuple{QuoteNode, Expr}
     if e.head == :(=) || e.head == :kw

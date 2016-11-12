@@ -25,27 +25,28 @@ determined by the content of the expression passed to `@query` and reflects the
 expectation that the same query (as passed to `@query`) twice should produce
 `Query` objects that satisfy `isequal`.
 """
-function Base.isequal{T<:QueryNode}(q1::T, q2::T)::Bool
-    isequal(q1.input, q2.input) || return false
-    isequal(q1.args, q2.args) || return false
-    return true
-end
-
-"""
-    Base.isequal{T<:JoinNode}(q1::T, q2::T)::Bool
-
-Test two `JoinNode` objects for equality.
-
-This result depends only on the `input1`, `input2` and `args`fields of each `q1`
-and `q2`; the contents of the `helpers` and `parameters` fields are not
-compared.
-"""
-function Base.isequal{T<:JoinNode}(q1::T, q2::T)::Bool
+function Base.isequal{T<:Node}(q1::T, q2::T)::Bool
     isequal(q1.inputs, q2.inputs) || return false
     isequal(q1.args, q2.args) || return false
     return true
 end
 
+# """
+#     Base.isequal{T<:JoinNode}(q1::T, q2::T)::Bool
+#
+# Test two `JoinNode` objects for equality.
+#
+# This result depends only on the `input1`, `input2` and `args`fields of each `q1`
+# and `q2`; the contents of the `helpers` and `parameters` fields are not
+# compared.
+# """
+# function Base.isequal{T<:JoiNode}(q1::T, q2::T)::Bool
+#     isequal(q1.inputs, q2.inputs) || return false
+#     isequal(q1.args, q2.args) || return false
+#     return true
+# end
+
+# TODO: should this flatten?
 function source(q::QueryNode)
     inputs = q.inputs
     if length(inputs) > 1
@@ -54,7 +55,17 @@ function source(q::QueryNode)
         return source(first(inputs))
     end
 end
-# source(q::JoinNode) = tuple([source(input) for input in q.inputs]...)
 source(d::DataNode) = (d.input,)
 
-helpers(q::QueryNode) = q.helpers
+dos(q::QueryNode) = q.dos
+
+# As a container
+
+function _collect end
+function Base.collect(q::Node)
+    inputs = tuple([ collect(input) for input in q.inputs ]...)
+    return _collect(inputs, q)
+end
+
+function prepare end
+Base.collect(d::DataNode) = prepare(d.input)

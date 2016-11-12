@@ -8,8 +8,8 @@ expression passed to `@query` and reflects the expectation that the same query
 (as passed to `@query`) twice should produce `Query` objects that satisfy
 `isequal`.
 """
-function Base.isequal(qry1::Query, qry2::Query)::Bool
-    isequal(qry1.graph, qry2.graph) || return false
+function Base.isequal(c1::Cursor, c2::Cursor)::Bool
+    isequal(c1.graph, c2.graph) || return false
     return true
 end
 
@@ -18,7 +18,7 @@ end
 
 Return the data source(s) against which `q` is to be collected.
 """
-source(q::Query) = source(q.graph)
+source(c::Cursor) = source(c.graph)
 
 # TODO: Better wording of the following
 """
@@ -26,4 +26,12 @@ source(q::Query) = source(q.graph)
 
 Return the `QueryNode` graph representation of the query that produced `q`.
 """
-graph(q::Query) = q.graph
+graph(c::Cursor) = c.graph
+
+"""
+    Base.collect(q::Query)
+
+Collect a query against the source wrapped in the base `DataNode` of
+`q.graph`.
+"""
+Base.collect(c::Cursor) = collect(c.graph)

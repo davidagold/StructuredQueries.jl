@@ -1,17 +1,15 @@
 function process_arg!(
-    srcs_used, helpers_ex, ::Val{:innerjoin}, ex, index
-)::Void
+  srcs_used, helpers_ex, ::Type{InnerJoin}, ex, index)::Void
     # NOTE: Only equijoins are supported for now
     @assert ex.head == :call && ex.args[1] == :(==)
     lhs, rhs = ex.args[2], ex.args[3]
-    f_ex1, arg_fields1 = build_f_ex!(srcs_used, lhs, index)
-    f_ex2, arg_fields2 = build_f_ex!(srcs_used, rhs, index)
-    push!(
-        helpers_ex.args,
-        Expr(
-            :call, Helper{:innerjoin}, Expr(:tuple, Expr(:tuple, f_ex1, f_ex2), Expr(:tuple, arg_fields1, arg_fields2))
-        )
-    )
+    f_ex1, ai1 = build_f_ex!(srcs_used, lhs, index)
+    f_ex2, ai2 = build_f_ex!(srcs_used, rhs, index)
+    push!(helpers_ex.args,
+          Expr(:call, InnerJoin,
+               Expr(:tuple,
+                    Expr(:tuple, f_ex1, f_ex2),
+                    Expr(:tuple, ai1, ai2))))
     return
 end
 

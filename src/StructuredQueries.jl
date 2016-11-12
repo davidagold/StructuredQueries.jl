@@ -2,60 +2,46 @@ module StructuredQueries
 
 using Compat
 
-export  Query,
-        @query,
-        @collect,
+export  Cursor,
+        Grouped,
         @with,
         source,
         graph
 
 include("utils.jl")
 
-##############################################################################
-##
-## query
-##
-##############################################################################
+# grouped
+include("grouped/grouped.jl")
+include("grouped/show.jl")
 
-# QueryHelper API
-include("query/helper/typedefs.jl")
-include("query/helper/primitives.jl")
+#verbs
+include("verbs/verbs.jl")
+include("verbs/primitives.jl")
 
-# QueryNode API
-include("query/node/typedefs.jl")
-include("query/node/primitives.jl")
-include("query/node/show.jl")
+include("verbs/expr/assignment_expr_ops.jl")
+include("verbs/expr/kernel.jl")
+include("verbs/expr/sym_analysis.jl")
 
-# Query API
-include("query/typedef.jl")
-include("query/primitives.jl")
-include("query/macros.jl")
-include("query/show.jl")
+include("verbs/process/select.jl")
+include("verbs/process/filter.jl")
+include("verbs/process/orderby.jl")
+include("verbs/process/groupby.jl")
+include("verbs/process/join.jl")
+include("verbs/process/summarize.jl")
 
-# graph generation
-include("query/graph/graph.jl")
-## helper generation
-include("query/graph/helper/generic.jl")
-include("query/graph/helper/select.jl")
-include("query/graph/helper/filter.jl")
-include("query/graph/helper/orderby.jl")
-include("query/graph/helper/groupby.jl")
-include("query/graph/helper/summarize.jl")
-include("query/graph/helper/join.jl")
-## kernel generation
-include("query/graph/kernel/assignment_expr_ops.jl")
-include("query/graph/kernel/sym_analysis.jl")
-include("query/graph/kernel/kernel.jl")
+#nodes
+include("nodes/nodes.jl")
+include("nodes/primitives.jl")
+include("nodes/show.jl")
 
-##############################################################################
-##
-## collect
-##
-##############################################################################
+# cursors
+include("cursor/cursor.jl")
+include("cursor/primitives.jl")
+include("cursor/show.jl")
+include("cursor/macros.jl")
+include("cursor/graph.jl")
 
-# collect API
-# include("collect/utils.jl")
-# include("collect/collect.jl")
+# collect
 include("collect/lift.jl")
 
-end # module StructuredQueries
+end
