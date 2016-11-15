@@ -5,6 +5,6 @@ CurrentModule = StructuredQueries
 ```
 
 ```@docs
-exf
-exfargs
+call_function
+call_function_arguments
 ```

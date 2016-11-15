@@ -4,8 +4,8 @@
 Return a `Query` object that represents the query structure of `qry`.
 """
 macro query(qry)
-    graph_ex = gen_graph_ex(qry)
-    return Expr(:call, Query, graph_ex)
+    graph_expression = graph(qry)
+    return Expr(:call, Query, graph_expression)
 end
 
 """
@@ -14,9 +14,9 @@ end
 Like `@query`, but automatically `collect`s the resulting `Query` object.
 """
 macro collect(qry)
-    graph_ex = gen_graph_ex(qry)
+    graph_expression = graph(qry)
     return Expr(
         :call, :collect,
-        Expr(:call, Query, graph_ex)
+        Expr(:call, Query, graph_expression)
     )
 end
