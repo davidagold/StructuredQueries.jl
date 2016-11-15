@@ -34,7 +34,7 @@ graph(src::Symbol, piped_to) =
 function graph(ex::Expr, piped_to)
     if ex.head == :call
         verb = call_function(ex)
-        _args = call_functionargs(ex)
+        _args = call_function_arguments(ex)
         if haskey(QUERYNODE, verb)
             T, H = QUERYNODE[verb]
             return node(T, H, _args, piped_to)

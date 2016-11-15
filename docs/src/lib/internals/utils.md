@@ -6,5 +6,5 @@ CurrentModule = StructuredQueries
 
 ```@docs
 call_function
-call_functionargs
+call_function_arguments
 ```
