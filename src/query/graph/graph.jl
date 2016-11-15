@@ -23,24 +23,24 @@ _leaf(x) = DataNode(x)
 _leaf(q::Query) = q.graph
 
 """
-    gen_graph_ex(qry)::Expr
+    graph(qry)::Expr
 
 Return an `Expr` to produce a graph representation of `qry`.
 """
-gen_graph_ex(qry)::Expr = gen_graph_ex(qry, false)
-gen_graph_ex(src::Symbol, piped_to) =
+graph(qry)::Expr = graph(qry, false)
+graph(src::Symbol, piped_to) =
     Expr(:call, :(StructuredQueries._leaf), esc(src))
 
-function gen_graph_ex(ex::Expr, piped_to)
+function graph(ex::Expr, piped_to)
     if ex.head == :call
-        verb = exf(ex)
-        _args = exfargs(ex)
+        verb = call_function(ex)
+        _args = call_functionargs(ex)
         if haskey(QUERYNODE, verb)
             T, H = QUERYNODE[verb]
-            return gen_node_ex(T, H, _args, piped_to)
+            return node(T, H, _args, piped_to)
         elseif verb == :|>
-            return gen_graph_ex(_args[1], false) |>
-                   gen_graph_ex(_args[2], true)
+            return graph(_args[1], false) |>
+                   graph(_args[2], true)
         end
     else # not valid syntax
         # TODO: informative error message
@@ -49,46 +49,46 @@ function gen_graph_ex(ex::Expr, piped_to)
 end
 
 """
-    gen_node_ex{T}(::Type{T}, H, args, piped_to)
+    node{T}(::Type{T}, H, args, piped_to)
 
 Return an `Expr` to produce a `QueryNode` based on a verb
 (corresponding to `T`)/arguments (corresponding to `args`) from a query
 expression `qry` in `@query qry`.
 """
-function gen_node_ex{T<:QueryNode}(::Type{T}, H, _args, piped_to)
+function node{T<:QueryNode}(::Type{T}, H, _args, piped_to)
     if !piped_to # first argument is an input
         input = _args[1]
         args = _args[2:end]
         return Expr(
             :call, T,
-            gen_graph_ex(input, false),
+            graph(input, false),
             args,
-            gen_helpers_ex(H, args)
+            helpers(H, args)
         )
     else # all _args are query args
-        return x -> Expr(:call, T, x, _args, gen_helpers_ex(H, _args))
+        return x -> Expr(:call, T, x, _args, helpers(H, _args))
     end
 end
 
-function gen_node_ex{T<:JoinNode}(::Type{T}, H, _args, piped_to)
+function node{T<:JoinNode}(::Type{T}, H, _args, piped_to)
     if !piped_to
         input1 = _args[1]
         input2 = _args[2]
         args = _args[3:end]
         return Expr(
             :call, T,
-            gen_graph_ex(input1, false), gen_graph_ex(input2, false),
+            graph(input1, false), graph(input2, false),
             args,
-            gen_helpers_ex(H, args)
+            helpers(H, args)
         )
     else
         input2 = _args[1]
         args = _args[2:end]
         return x -> Expr(
             :call, T,
-            x, gen_graph_ex(input2, false),
+            x, graph(input2, false),
             args,
-            gen_helpers_ex(H, args)
+            helpers(H, args)
         )
     end
 end

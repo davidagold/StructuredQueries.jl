@@ -7,14 +7,14 @@ function result_column(e::Expr)::Tuple{QuoteNode, Any}
         error(@sprintf("Unable to extract result column from expression: %s", e))
     end
 
-    res_field = e.args[1]
-    if !isa(res_field, Symbol)
+    result_field = e.args[1]
+    if !isa(result_field, Symbol)
         error(@sprintf("Target column name is not a symbol: %s", s))
     end
 
-    value_expr = e.args[2]
+    value_expression = e.args[2]
 
-    return QuoteNode(res_field), value_expr
+    return QuoteNode(result_field), value_expression
 end
 
 """
@@ -31,7 +31,7 @@ Returns:
 
 * s::Symbol: A symbol specifying the column name that will be assigned to.
 """
-function get_res_field(e::Expr)::Symbol
+function get_result_field(e::Expr)::Symbol
     if !(e.head == :(=) || e.head == :kw)
         error(@sprintf("Unable to extract column name from expression: %s", e))
     end
@@ -59,12 +59,12 @@ Returns:
     value assigned to the column implied by. May be a literal, a raw symbol or
     a full `Expr` object.
 """
-function get_value_expr(e_in::Expr)::Any
+function get_value_expression(e_in::Expr)::Any
     if !(e_in.head == :(=) || e_in.head == :kw)
         error(@sprintf("Unable to extract column name from %s", e_in))
     end
 
-    value_expr = e_in.args[2]
+    value_expression = e_in.args[2]
 
-    return value_expr
+    return value_expression
 end

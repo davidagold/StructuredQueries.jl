@@ -1,6 +1,6 @@
-function gen_helper_ex(::Type{GroupbyHelper}, ex)::Expr
+function helper(::Type{GroupbyHelper}, ex)::Expr
     is_predicate = isa(ex, Expr) ? true : false
-    arg_parameters = Set{Symbol}()
-    f_ex, arg_fields = build_kernel_ex!(ex, arg_parameters)
-    return Expr(:call, GroupbyHelper, is_predicate, f_ex, arg_fields)
+    argument_parameters = Set{Symbol}()
+    f_expression, argument_fields = kernel!(ex, argument_parameters)
+    return Expr(:call, GroupbyHelper, is_predicate, f_expression, argument_fields)
 end
