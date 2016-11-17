@@ -6,6 +6,25 @@ else
     using Base: null_safe_op
 end
 
+lift(f, x) = f(x)
+
+abstract MaybeNullable
+immutable YesNullable <: MaybeNullable end
+immutable NoNullable <: MaybeNullable end
+Base.@pure any_nullable(x,y) = ifelse((x<:Nullable) | (y<:Nullable), YesNullable(), NoNullable())
+Base.@pure any_nullable(xs) = ifelse(mapreduce(x->x<:Nullable, |, xs.parameters), YesNullable(), NoNullable())
+
+# # back-up in case @pure gives us grief
+# any_nullable(x::Nullable, xs...) = true
+# any_nullable(x, xs...) = any_nullables(xs...)
+# any_nullable(x) = false
+# any_nullable() = false
+
+@inline lift(f, x, y) = lift(f, x, y, any_nullable(typeof(x), typeof(y)))
+@inline lift(f, xs...) = lift(f, xs, any_nullable(typeof(xs)))
+@inline lift(f, x, y, ::NoNullable) = f(x, y)
+@inline lift(f, xs, ::NoNullable) = f(xs...)
+
 ##############################################################################
 ##
 ## Standard lifting semantics
@@ -15,7 +34,7 @@ end
 ##
 ##############################################################################
 
-@inline function lift(f, x)
+@inline function lift(f, x::Nullable)
     if null_safe_op(f, typeof(x))
         return @compat Nullable(f(x.value), !isnull(x))
     else
@@ -28,15 +47,13 @@ end
     end
 end
 
-@inline function lift(f, x1, x2)
+@inline function lift(f, x1, x2, ::YesNullable)
     if null_safe_op(f, typeof(x1), typeof(x2))
         return @compat Nullable(
-            f(x1.value, x2.value), !(isnull(x1) | isnull(x2))
-        )
+            f(x1.value, x2.value), !(isnull(x1) | isnull(x2)))
     else
         U = Core.Inference.return_type(
-            f, Tuple{eltype(typeof(x1)), eltype(typeof(x2))}
-        )
+            f, Tuple{eltype(typeof(x1)), eltype(typeof(x2))})
         if isnull(x1) | isnull(x2)
             return Nullable{U}()
         else
@@ -45,15 +62,13 @@ end
     end
 end
 
-@inline function lift(f, xs...)
+@inline function lift(f, xs, ::YesNullable)
     if null_safe_op(f, map(typeof, xs)...)
         return @compat Nullable(
-            f(map(unsafe_get, xs)...), !(mapreduce(isnull, |, xs))
-        )
+            f(map(unsafe_get, xs)...), !(mapreduce(isnull, |, xs)))
     else
         U = Core.Inference.return_type(
-            f, Tuple{map(x->eltype(typeof(x)), xs)...}
-        )
+            f, Tuple{map(x->eltype(typeof(x)), xs)...})
         if hasnulls(xs)
             return Nullable{U}()
         else
@@ -69,7 +84,7 @@ end
 ##############################################################################
 
 # three-valued logic implementation
-@inline function lift(::typeof(&), x, y)::Nullable{Bool}
+@inline function lift(::typeof(&), x, y, ::YesNullable)::Nullable{Bool}
     return ifelse( isnull(x),
         ifelse( isnull(y),
             Nullable{Bool}(),                       # x, y null
@@ -89,7 +104,7 @@ end
 end
 
 # three-valued logic implementation
-@inline function lift(::typeof(|), x, y)::Nullable{Bool}
+@inline function lift(::typeof(|), x, y, ::YesNullable)::Nullable{Bool}
     return ifelse( isnull(x),
         ifelse( isnull(y),
             Nullable{Bool}(),                       # x, y null
@@ -122,7 +137,7 @@ end
 #     )
 # end
 
-@inline function lift(::typeof(isless), x, y)::Bool
+@inline function lift(::typeof(isless), x, y, ::YesNullable)::Bool
     if null_safe_op(isless, typeof(x), typeof(y))
         return ifelse( isnull(x),
             false,                                      # x null
@@ -137,6 +152,7 @@ end
     end
 end
 
-@inline lift(::typeof(isnull), x) = isnull(x)
+@inline lift(::typeof(isnull), x::Nullable) = isnull(x)
+@inline lift(::typeof(isnull), x, ::MaybeNullable) = isnull(x)
 @inline lift(::typeof(get), x::Nullable) = get(x)
 @inline lift(::typeof(get), x::Nullable, y) = get(x, y)

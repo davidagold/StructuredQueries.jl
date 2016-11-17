@@ -17,133 +17,101 @@ D = rand(["a", "b"], n)
 
 # select
 
-q_a = @query select(src, A)
-q_b = @query src |> select(A)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
+c1 = @with src select(A)
+c2 = @with src begin
+    select(A)
+end
+@test isequal(c1, c2)
+show(io, c1)
+display(disp, c1)
 
-q_a = @query select(src, C = A * B)
-q_b = @query src |> select(C = A * B)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
+c1 = @with src select(C = A * B)
+c2 = @with src begin
+    select(C = A * B)
+end
+@test isequal(c1, c2)
+show(io, c1)
+display(disp, c1)
 
-q_a = @query select(src, A, C = A * B)
-q_b = @query src |> select(A, C = A * B)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
+c1 = @with src select(A, C = A * B)
+c2 = @with src begin
+    select(A, C = A * B)
+end
+@test isequal(c1, c2)
+show(io, c1)
+display(disp, c1)
 
 # filter
 
-q_a = @query filter(src, A > .5)
-q_b = @query src |> filter(A > .5)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
+c1 = @with src filter(A > .5)
+c2 = @with src begin
+    filter(A > .5)
+end
+@test isequal(c1, c2)
+show(io, c1)
+display(disp, c2)
 
 # orderby
 
-q_a = @query orderby(src, A)
-q_b = @query src|> orderby(A)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
+c1 = @with src orderby(A)
+c2 = @with src begin
+    orderby(A)
+end
+@test isequal(c1, c2)
+show(io, c1)
+display(disp, c1)
 
-q_a = @query orderby(src, 5 * B)
-q_b = @query src |> orderby(5 * B)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
+c1 = @with src orderby(5 * B)
+c2 = @with src begin
+    orderby(5 * B)
+end
+@test isequal(c1, c2)
+show(io, c1)
+display(disp, c1)
 
-q_a = @query orderby(src, A, 5 * B)
-q_b = @query src |> orderby(A, 5 * B)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
+c1 = @with src orderby(A, 5 * B)
+c2 = @with src begin
+    orderby(A, 5 * B)
+end
+@test isequal(c1, c2)
+show(io, c1)
+display(disp, c1)
 
 # groupby
 
-q_a = @query groupby(src, D)
-q_b = @query src |> groupby(D)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
+c1 = @with src groupby(D)
+c2 = @with src begin
+    groupby(D)
+end
+@test isequal(c1, c2)
+show(io, c1)
+display(disp, c1)
 
-q_a = @query groupby(src, A > .5)
-q_b = @query src |> groupby(A > .5)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
+c1 = @with src groupby(A > .5)
+c2 = @with src begin
+    groupby(A > .5)
+end
+@test isequal(c1, c2)
+show(io, c1)
+display(disp, c1)
 
-q_a = @query groupby(src, D, A > .5)
-q_b = @query src |> groupby(D, A > .5)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
+c1 = @with src groupby(D, A > .5)
+c2 = @with src begin
+    groupby(D, A > .5)
+end
+@test isequal(c1, c2)
+show(io, c1)
+display(disp, c1)
 
 # summarize
 
-q_a = @query summarize(src, avg_A = mean(A))
-q_b = @query src |> summarize(avg_A = mean(A))
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
+c1 = @with src summarize(avg_A = mean(A))
+c2 = @with src begin
+    summarize(avg_A = mean(A))
+end
+@test isequal(c1, c2)
+show(io, c1)
+display(disp, c1)
 
-### JOINS
-
-src1 = MyData()
-src2 = MyData()
-
-# leftjoin
-
-q_a = @query leftjoin(src1, src2, A == B)
-q_b = @query src1 |> leftjoin(src2, A == B)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
-
-# outerjoin
-
-q_a = @query outerjoin(src1, src2, A == B)
-q_b = @query src1 |> outerjoin(src2, A == B)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
-
-# innerjoin
-
-q_a = @query innerjoin(src1, src2, A == B)
-q_b = @query src1 |> innerjoin(src2, A == B)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
-
-q3 = @query join(src1, src2, A == B)
-q4 = @query src1 |> join(src2, A ==B)
-@test isequal(q_b, q3)
-@test isequal(q3, q4)
-show(io, q3)
-display(disp, q3)
-
-# crossjoin
-
-q_a = @query crossjoin(src1, src2, A == B)
-q_b = @query src1 |> crossjoin(src2, A == B)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
-
-##################
-# querying a Query
-
-f(q::Query) = @query q |> select(B)
-q_a = f(@query filter(src, A > .5))
-q_b = @query filter(src, A > .5) |> select(B)
-@test isequal(src, _src)
-@test isequal(q_a, q_b)
-show(io, q_a)
-display(disp, q_a)
 
 end

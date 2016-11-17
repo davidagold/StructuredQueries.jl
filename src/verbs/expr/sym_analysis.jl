@@ -114,12 +114,9 @@ Returns:
 * new_e::Any: A new AST-like object with all symbols replaced with
     tuple-indexing operations.
 """
-function replace_symbols!(
-    ai::ArgsIndex,
-    e::Any,
-    index
+function replace_symbols!(ai::ArgsIndex, e::Any, index, primary)::Any
     # smaps::Dict{Symbol, Dict{Symbol, Int}}
-)::Any
+# )::Any
     if isa(e, Expr)
         # To ensure purity, we copy any Expr objects rather than mutate them.
         new_e = copy(e)
@@ -133,21 +130,19 @@ function replace_symbols!(
             push!(lifted_e.args, Expr(:., :StructuredQueries, QuoteNode(:lift)))
             push!(lifted_e.args, esc(args_copy[1]))
             for i in 2:length(args_copy)
-                push!(
-                    lifted_e.args,
-                    replace_symbols!(ai, args_copy[i], index)
-                )
+                push!(lifted_e.args,
+                      replace_symbols!(ai, args_copy[i], index, primary))
             end
             return lifted_e
         elseif new_e.head in (:(||), :(&&), :if)
             for i in 1:length(new_e.args)
-                new_e.args[i] = replace_symbols!(ai, new_e.args[i], index)
+                new_e.args[i] = replace_symbols!(ai, new_e.args[i], index, primary)
             end
-        elseif e.head == :.
+        elseif e.head == :. # token.attr
             _token = new_e.args[1]
             _arg = new_e.args[2]
             if haskey(index, _token)
-                arg = _arg.args[1]
+                arg = _arg.args[1] #grab the attribute name from inside the :quote Expr
                 s = get!(ai, _token)
                 push!(s, arg)
             end
@@ -169,6 +164,12 @@ function replace_symbols!(
     elseif isa(e, Symbol)
         if haskey(index, e)
             s = get!(ai, e)
+        end
+        if !isnull(primary)
+            token = index[get(primary)]
+            s = get!(ai, token)
+            push!(s, e)
+            return Expr(:call, :getfield, token, QuoteNode(e))
         end
     # elseif isa(e, Symbol)
     #     # Replace unquoted symbols with tuple indexing expressions.

@@ -31,21 +31,6 @@ function Base.isequal{T<:Node}(q1::T, q2::T)::Bool
     return true
 end
 
-# """
-#     Base.isequal{T<:JoinNode}(q1::T, q2::T)::Bool
-#
-# Test two `JoinNode` objects for equality.
-#
-# This result depends only on the `input1`, `input2` and `args`fields of each `q1`
-# and `q2`; the contents of the `helpers` and `parameters` fields are not
-# compared.
-# """
-# function Base.isequal{T<:JoiNode}(q1::T, q2::T)::Bool
-#     isequal(q1.inputs, q2.inputs) || return false
-#     isequal(q1.args, q2.args) || return false
-#     return true
-# end
-
 # TODO: should this flatten?
 function source(q::QueryNode)
     inputs = q.inputs

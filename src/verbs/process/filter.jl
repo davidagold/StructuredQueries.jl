@@ -1,7 +1,7 @@
 # NOTE: filter is special because we may need to decompose into filter + joins
-function build_node_ex!(stash, join_hist, ::Type{Filter}, args, index)
+function build_node_ex!(stash, join_hist, ::Type{Filter}, args, index, primary)
     join_arg_idxs, filter_arg_idxs = Vector{Int}(), Vector{Int}()
-    process_args!(stash, join_hist, Filter, args, index)
+    process_args!(stash, join_hist, Filter, args, index, primary)
 end
 
 """
@@ -11,7 +11,7 @@ join arguments, and filters that happen after the join.
 """
 # NOTE: :filter has its own definition because it may be decomposed into
 #       filters and join
-function process_args!(stash, join_hist, ::Type{Filter}, exs, index)::Tuple{Expr, Set{Symbol}}
+function process_args!(stash, join_hist, ::Type{Filter}, exs, index, primary)::Tuple{Expr, Set{Symbol}}
     # for an early (before join) filter -- i.e., a filters that only concerns a
     # single source -- we don't know join path until we inspect which source is used
     # map a source to a vector of args
@@ -52,7 +52,7 @@ function process_args!(stash, join_hist, ::Type{Filter}, exs, index)::Tuple{Expr
             srcs_used = Set{Symbol}()
             # NOTE: Again, not efficient! Check for sources used, then build
             # f_ex later!
-            f_ex = build_f_ex!(srcs_used, ex, index)
+            f_ex = build_f_ex!(srcs_used, ex, index, primary)
             helper_ex = Expr(:call, Filter, Expr(:tuple, f_ex))
             # check if the srcs_used have previously been joined, since this determines
             # whether the filter is early or late
@@ -84,7 +84,7 @@ function process_args!(stash, join_hist, ::Type{Filter}, exs, index)::Tuple{Expr
         push!(src_nodes_ex.args, stash[src_hist])
         _args = early_filters[src_hist]
         args = aggregate(_args)
-        f_ex, ai = build_f_ex!(Set{Symbol}(), args, index)
+        f_ex, ai = build_f_ex!(Set{Symbol}(), args, index, primary)
         # @show f_ex
         helpers_ex = Expr(:ref, Filter, Expr(:call, Filter, f_ex, ai))
         early_filter_node_ex = Expr(
@@ -100,7 +100,7 @@ function process_args!(stash, join_hist, ::Type{Filter}, exs, index)::Tuple{Expr
         node_ex = stash[src_hist]
         _args = early_filters[src_hist]
         args = aggregate(_args)
-        f_ex, ai = build_f_ex!(Set{Symbol}(), args, index)
+        f_ex, ai = build_f_ex!(Set{Symbol}(), args, index, primary)
         # @show f_ex
         helpers_ex = Expr(:ref, Filter, Expr(:call, Filter, f_ex, ai))
         stash[src_hist] = Expr(
@@ -123,7 +123,7 @@ function process_args!(stash, join_hist, ::Type{Filter}, exs, index)::Tuple{Expr
     if length(late_filter_args) > 0
         args = aggregate(late_filter_args)
         # TODO: don't throw away the sources used information
-        f_ex, ai = build_f_ex!(Set{Symbol}(), args, index)
+        f_ex, ai = build_f_ex!(Set{Symbol}(), args, index, primary)
         helpers_ex = Expr(:ref, Filter, Expr(:call, Filter, f_ex, ai))
         late_filter_node_ex = Expr(
             :call, Node{Filter}, Expr(:tuple, join_node_ex), late_filter_args,
@@ -150,8 +150,8 @@ join node or to a filter node.
 function join_or_filter(ex, join_hist, index)::Tuple{Symbol, Set{Symbol}, Expr}
     srcs_used1, srcs_used2 = Set{Symbol}(), Set{Symbol}() # lhs, rhs
     lhs, rhs = ex.args[2], ex.args[3]
-    f_ex1, arg_fields1 = build_f_ex!(srcs_used1, lhs, index)
-    f_ex2, arg_fields2 = build_f_ex!(srcs_used2, rhs, index)
+    f_ex1, arg_fields1 = build_f_ex!(srcs_used1, lhs, index, primary)
+    f_ex2, arg_fields2 = build_f_ex!(srcs_used2, rhs, index, primary)
     nsrcs1, nsrcs2 = length(srcs_used1), length(srcs_used2)
 
     # check if histories of sources on each side are unmerged
@@ -165,7 +165,7 @@ function join_or_filter(ex, join_hist, index)::Tuple{Symbol, Set{Symbol}, Expr}
     # or one side refers to no sources (just literals or names from enclosing scope)
     if length(src_hists1) * length(src_hists2) == 0 # filter
         srcs_used = Set{Symbol}()
-        f_ex = build_f_ex!(srcs_used, ex, index)
+        f_ex = build_f_ex!(srcs_used, ex, index, primary)
         return :filter, srcs_used,
                Expr(:call, Filter, Expr(:tuple, f_ex))
     else # join

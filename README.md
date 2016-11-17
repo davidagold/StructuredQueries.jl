@@ -6,8 +6,6 @@
 [![StructuredQueries](http://pkg.julialang.org/badges/StructuredQueries_0.5.svg)](http://pkg.julialang.org/?pkg=StructuredQueries)
 [![StructuredQueries](http://pkg.julialang.org/badges/StructuredQueries_0.6.svg)](http://pkg.julialang.org/?pkg=StructuredQueries)
 [![codecov](https://codecov.io/gh/davidagold/StructuredQueries.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/davidagold/StructuredQueries.jl)
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://davidagold.github.io/StructuredQueries.jl/stable)
-[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://davidagold.github.io/StructuredQueries.jl/latest)
 
 
 ## Installation
@@ -36,5 +34,4 @@ The present package aims to support a querying framework that is
 
 ## Documentation
 
-- [**STABLE**](https://davidagold.github.io/StructuredQueries.jl/stable) &mdash; **most recently tagged version of the documentation.**
-- [**LATEST**](https://davidagold.github.io/StructuredQueries.jl/latest) &mdash; *in-development version of the documentation.*
+... Is currently offline, since I just (as of 11/16/16) redesigned much of this package. Documentation will catch up in December, once this academic quarter is over.

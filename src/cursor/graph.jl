@@ -23,8 +23,7 @@ const VERB = Dict{Symbol, DataType}(
 _leaf(x) = DataNode(x)
 _leaf(c::Cursor) = c.graph
 
-function _graph_ex(args, index::Dict{Symbol, Symbol})
-
+function _graph_ex(args, index::Dict{Symbol, Symbol}, primary)
     stash = Dict{Set{Symbol}, Expr}(
         Set([src]) => Expr(:call, :(StructuredQueries._leaf), esc(src)) for src in values(index)
     )
@@ -32,7 +31,7 @@ function _graph_ex(args, index::Dict{Symbol, Symbol})
     join_hist = Dict{Symbol, Set{Symbol}}(
         src => Set([src]) for src in values(index)
     )
-    graph_ex = traverse!(args, stash, join_hist, index)
+    graph_ex = traverse!(args, stash, join_hist, index, primary)
     return graph_ex
 end
 
@@ -40,14 +39,14 @@ end
 
 Stores the extant graph in `stash`.
 """
-function traverse!(exs, stash, join_hist, index)
+function traverse!(exs, stash, join_hist, index, primary)
     ex = exs[1]
     if ex.head == :line # skip line number Exprs
-        return traverse!(exs[2:end], stash, join_hist, index)
+        return traverse!(exs[2:end], stash, join_hist, index, primary)
     elseif ex.head == :call
         verb, args = ex.args[1], ex.args[2:end]
         V = VERB[verb]
-        node_ex, srcs_used = build_node_ex!(stash, join_hist, V, args, index)
+        node_ex, srcs_used = build_node_ex!(stash, join_hist, V, args, index, primary)
         # Have any such sources been joined *together* in previous verbs?
         # If so, they will have matching join_hist values
         srcs_hist = unique([join_hist[src] for src in srcs_used])
@@ -57,7 +56,7 @@ function traverse!(exs, stash, join_hist, index)
         foreach(src->(join_hist[src] = joined_srcs), joined_srcs)
         stash[joined_srcs] = node_ex
         if length(exs) > 1 # more verbs to go
-            return traverse!(exs[2:end], stash, join_hist, index)
+            return traverse!(exs[2:end], stash, join_hist, index, primary)
         else
             return node_ex # no more verbs, return graph expression
         end
@@ -83,15 +82,15 @@ function traverse!(exs, stash, join_hist, index)
             # TODO: check for validity ...
             push!(args, ex)
         end
-        node_ex, srcs_used = build_node_ex!(stash, join_hist, Select, args, index)
+        node_ex, srcs_used = build_node_ex!(stash, join_hist, Select, args, index, primary)
         return node_ex
     end
 end
 
-function build_node_ex!{V}(stash, join_hist, ::Type{V}, args, index)
+function build_node_ex!{V}(stash, join_hist, ::Type{V}, args, index, primary)
     # process args into Verb instances
     # which sources are pertinent to the present verb invocation?
-    srcs_used, helpers_ex = process_args(V, args, index)
+    srcs_used, helpers_ex = process_args(V, args, index, primary)
     # If no declared sources are used in any verbs, throw an error
     isempty(srcs_used) && throw(ArgumentError("No declared sources used in verbs."))
     # build expression to instantiate node for present verb

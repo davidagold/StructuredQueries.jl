@@ -4,7 +4,7 @@ anyerrors = false
 
 my_tests = (
     "query/node.jl",
-    "query/query.jl",
+    # "query/query.jl",
     "collect.jl",
     "lift.jl"
 )

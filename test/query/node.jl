@@ -9,49 +9,35 @@ disp = TextDisplay(IOBuffer())
 type MyData end
 iris = MyData()
 
-q = @query filter(iris, sepal_length > 5.0)
-@test source(q) === iris
-@test graph(q) === q.graph
-show(io, graph(q))
-display(disp, graph(q))
+c = @with iris filter(sepal_length > 5.0)
+@test source(c) === (iris,)
+@test graph(c) === c.graph
+show(io, graph(c))
+display(disp, graph(c))
 
-q = @query iris |>
-    filter(sepal_length > 5.0) |>
+c1 = @with iris begin
+    filter(sepal_length > 5.0)
     select(petal_width)
-@test source(q) === iris
-@test graph(q) === q.graph
-show(io, graph(q))
-display(disp, graph(q))
+end
+c2 = @with iris filter(sepal_length > 5.0), select(petal_width)
+@test isequal(c1, c2)
+@test source(c1) === (iris,)
+@test graph(c1) === c1.graph
+show(io, graph(c1))
+display(disp, graph(c1))
 
-q = @query iris |>
-    filter(sepal_length > 5.0) |>
-    groupby(species) |>
+c1 = @with iris begin
+    filter(sepal_length > 5.0)
+    groupby(species)
     summarize(avg = mean(petal_width))
-@test source(q) === iris
-@test graph(q) === q.graph
-show(io, graph(q))
-display(disp, graph(q))
-
-tbl1, tbl2 = MyData(), MyData()
-
-q = @query tbl1 |>
-    select(A, B) |>
-    leftjoin(filter(tbl2, C > .5), A == B) |>
-    groupby(D) |>
-    summarize(avg = mean(E))
-@test source(q) === (tbl1, tbl2)
-@test graph(q) === q.graph
-show(io, graph(q))
-display(disp, graph(q))
-
-q = @query tbl1 |>
-    select(A, B) |>
-    leftjoin(filter(tbl2, C > .5), A == B) |>
-    groupby(D) |>
-    crossjoin(tbl1)
-@test source(q) === ((tbl1, tbl2), tbl1)
-@test graph(q) === q.graph
-show(io, graph(q))
-display(disp, graph(q))
+end
+c2 = @with iris filter(sepal_length > 5.0),
+    groupby(species),
+    summarize(avg = mean(petal_width))
+@test isequal(c1, c2)
+@test source(c1) === (iris,)
+@test graph(c1) === c1.graph
+show(io, graph(c1))
+display(disp, graph(c1))
 
 end

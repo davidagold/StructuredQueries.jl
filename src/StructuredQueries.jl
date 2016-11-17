@@ -19,9 +19,10 @@ include("verbs/verbs.jl")
 include("verbs/primitives.jl")
 
 include("verbs/expr/assignment_expr_ops.jl")
-include("verbs/expr/kernel.jl")
+include("verbs/expr/scalar.jl")
 include("verbs/expr/sym_analysis.jl")
 
+include("verbs/process/generic.jl")
 include("verbs/process/select.jl")
 include("verbs/process/filter.jl")
 include("verbs/process/orderby.jl")
